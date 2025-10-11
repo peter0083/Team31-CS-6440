@@ -1,6 +1,4 @@
-# Team 31 - Clinical Trial Matcher
-
-# Team31-CS-6440
+# Team 31 CS-6440 - Clinical Trial Matcher
 
 [![CI](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/ci.yml/badge.svg)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/ci.yml)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-passing-brightgreen?logo=pre-commit)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/pre-commit.yml)
