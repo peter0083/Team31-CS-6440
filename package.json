@@ -1,0 +1,31 @@
+{
+  "name": "team31-cs-6440",
+  "version": "1.0.0",
+  "description": "This project provides a single `setup.sh` script to automate the development environment installation and configuration. It installs and configures the following dependencies:",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.gatech.edu/jtully7/Team31-CS-6440.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.46.0",
+    "@typescript-eslint/parser": "^8.46.0",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^16.2.4",
+    "prettier": "^3.6.2"
+  }
+}

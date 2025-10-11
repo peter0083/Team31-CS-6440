@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-# Activate the Poetry environment
 source "$(poetry env info --path)/bin/activate"
+echo "Using Node.js $(node --version)"
