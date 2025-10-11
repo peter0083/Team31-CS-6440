@@ -1,4 +1,14 @@
-# Project Setup
+# Team 31 - Clinical Trial Matcher
+
+# Team31-CS-6440
+
+[![CI](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/ci.yml/badge.svg)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/ci.yml)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-passing-brightgreen?logo=pre-commit)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/pre-commit.yml)
+[![Mypy](https://img.shields.io/badge/mypy-passing-brightgreen?logo=mypy&logoColor=ffffff)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/mypy.yml)
+[![Ruff](https://img.shields.io/badge/ruff-passing-brightgreen?logo=ruff)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/ruff.yml)
+[![isort](https://img.shields.io/badge/isort-passing-brightgreen?logo=python)](https://github.gatech.edu/jtully7/Team31-CS-6440/actions/workflows/isort.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/jtully7/Team31-CS-6440.svg?logo=codecov)](https://codecov.io/gh/jtully7/Team31-CS-6440)
+
 
 This project provides a single `setup.sh` script to automate the development environment installation and configuration. It installs and configures the following dependencies:
 
