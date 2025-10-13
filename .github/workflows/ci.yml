@@ -32,5 +32,5 @@ jobs:
         run: |
           poetry run pre-commit run --all-files
           poetry run mypy .
-          poetry run ruff .
+          poetry run ruff check .
           poetry run isort --check-only .
