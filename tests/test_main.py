@@ -8,7 +8,7 @@ from src.main import app
 client = TestClient(app)
 
 
-def test_placeholder():
+def test_placeholder() -> None:
     """Test root endpoint"""
     print("unit test placeholder")
     assert True
