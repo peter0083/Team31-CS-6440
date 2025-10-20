@@ -1,10 +1,14 @@
 """Tests for MS2 microservice: clinical trial criteria parser."""
 
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.ms2.ms2_main import MS2Service
+from src.ms2.ms2_routes import router
 
-client = TestClient(MS2Service)
+app = FastAPI()
+app.include_router(router)
+
+client = TestClient(app)
 
 
 def test_root() -> None:
