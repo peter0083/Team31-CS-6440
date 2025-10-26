@@ -2,9 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - MS2  # Run on direct pushes to MS2
   pull_request:
-    branches: [ main ]
+    branches:
+      - main  # Run on PRs targeting main
+      - MS2   # Run on PRs targeting MS2
 
 jobs:
   build:
