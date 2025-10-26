@@ -1,0 +1,49 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: ms2_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ms2_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MS2 Service (optional - if you want to run in Docker)
+  # ms2:
+  #   build: .
+  #   container_name: ms2_service
+  #   ports:
+  #     - "8002:8002"
+  #   environment:
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #     - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
+  #     - MS1_URL=http://host.docker.internal:8001
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./src:/app/src
+
+  # Redis (for future use - uncomment when ready)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: ms2_redis
+  #   ports:
+  #     - "6379:6379"
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+volumes:
+  postgres_data:

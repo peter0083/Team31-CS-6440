@@ -8,7 +8,7 @@ build/
 dist/
 *.egg-info/
 .venv/
-.env
+src/ms2/.env
 
 # Poetry
 poetry.lock
