@@ -4,6 +4,7 @@ Configuration: gpt-4o-mini only + PostgreSQL
 
 import time
 from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
 from fastapi import APIRouter, FastAPI, HTTPException, status
 from pydantic_core._pydantic_core import ValidationError
@@ -21,7 +22,7 @@ from src.ms2.ms2_pydantic_models import (
 
 # Lifecycle management
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize and cleanup on startup/shutdown."""
     # Startup
     print(f"Starting {settings.SERVICE_NAME} v{settings.VERSION}")
@@ -177,7 +178,7 @@ async def health_check() -> HealthResponse:
     "/",
     tags=["MS2"],
 )
-async def root():
+async def root() -> dict[str, str]:
     """Root endpoint."""
     return {
         "service": settings.SERVICE_NAME,

@@ -7,7 +7,10 @@ from datetime import datetime
 from typing import Optional
 
 import httpx
-import instructor
+
+# instructor library does not provide type stubs (.pyi files) or py.typed marker,
+# so mypy cannot verify its types. Skip type checking for this import.
+import instructor  # type: ignore[import-untyped]
 from fastapi import FastAPI
 from openai import AsyncOpenAI
 from sqlalchemy import select
@@ -26,7 +29,7 @@ from src.ms2.ms2_pydantic_models import (
 class MedicalCodingService:
     """Service for mapping medical terms to ICD-10 codes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.icd10_cache = {
             "type 2 diabetes": "E11",
             "type 2 diabetes mellitus": "E11",
@@ -67,7 +70,7 @@ class MedicalCodingService:
 class MS1Client:
     """Client for fetching data from MS1."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_url = settings.MS1_URL
         self.timeout = settings.MS1_TIMEOUT
 
@@ -94,7 +97,7 @@ class MS2Service:
     Configuration: gpt-4o-mini only + PostgreSQL
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.client = instructor.from_openai(
             AsyncOpenAI(
                 api_key=settings.OPENAI_API_KEY,
@@ -162,19 +165,19 @@ class MS2Service:
 
                 if db_record:
                     return ParsedCriteriaResponse(
-                        nct_id=db_record.nct_id,
+                        nct_id=str(db_record.nct_id),  # Cast to str
                         parsing_timestamp=db_record.parsing_timestamp,
                         inclusion_criteria=[
-                            InclusionCriteriaRule(**r) for r in db_record.inclusion_criteria
+                            InclusionCriteriaRule(**r) for r in (db_record.inclusion_criteria or [])
                         ],
                         exclusion_criteria=[
-                            ExclusionCriteriaRule(**r) for r in db_record.exclusion_criteria
+                            ExclusionCriteriaRule(**r) for r in (db_record.exclusion_criteria or [])
                         ],
-                        parsing_confidence=db_record.parsing_confidence,
-                        total_rules_extracted=db_record.total_rules_extracted,
-                        model_used=db_record.model_used,
+                        parsing_confidence=float(db_record.parsing_confidence),  # Cast to float
+                        total_rules_extracted=int(db_record.total_rules_extracted),  # Cast to int
+                        model_used=str(db_record.model_used),  # Cast to str
                         reasoning_steps=[
-                            ReasoningStep(**s) for s in db_record.reasoning_steps
+                            ReasoningStep(**s) for s in (db_record.reasoning_steps or [])
                         ] if db_record.reasoning_steps else None,
                     )
                 return None
@@ -239,6 +242,7 @@ class MS2Service:
                 parsing_confidence=0.0,
                 total_rules_extracted=0,
                 model_used="none",
+                reasoning_steps=None,
             )
 
         # Build prompt
@@ -277,7 +281,7 @@ class MS2Service:
                         inclusion_enriched.append(InclusionCriteriaRule(**enriched))
                     result.inclusion_criteria = inclusion_enriched
 
-                    exclusion_enriched = []
+                    exclusion_enriched : list[ExclusionCriteriaRule] = []
                     for rule in result.exclusion_criteria:
                         rule_dict = rule.model_dump()
                         enriched = await self.medical_coding.enrich_rule_with_codes(
