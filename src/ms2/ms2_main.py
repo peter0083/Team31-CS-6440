@@ -372,7 +372,3 @@ def create_app() -> FastAPI:
     app.include_router(router, prefix="/api/ms2")
 
     return app
-
-
-# Create app instance
-app = create_app()
