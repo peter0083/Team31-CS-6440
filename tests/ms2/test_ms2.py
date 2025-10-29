@@ -1,15 +1,6 @@
 """Tests for MS2 microservice with MOCKED OpenAI API calls.
 
-This test file uses unittest.mock to mock all external dependencies:
-- OpenAI API calls (via instructor library)
-- Database operations
-- No real API calls are made
-
-Benefits:
-- Fast (< 1 second)
-- Free (no API costs)
-- Reliable (no network dependencies)
-- Works in CI without API keys
+no real API calls to Open AI are made to save costs
 """
 
 from datetime import datetime
