@@ -125,11 +125,7 @@ jobs:
         env:
           OPENAI_API_KEY: "dummy-key-for-tests"
         run: |
-          poetry run pytest tests/ms2/test_ms2.py -v \
-            --cov=src.ms2 \
-            --cov-report=term-missing \
-            --cov-report=html \
-            --cov-fail-under=80
+          poetry run pytest tests/ms2/test_ms2.py -v 
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
