@@ -165,9 +165,9 @@ class MS2Service:
 
                 if db_record:
                     # Assert that these are lists, not Column objects
-                    inclusion_data: list[Any] = db_record.inclusion_criteria or []
-                    exclusion_data: list[Any] = db_record.exclusion_criteria or []
-                    reasoning_data: list[Any] = db_record.reasoning_steps or []
+                    inclusion_data: list[Any] = db_record.inclusion_criteria or []  # type: ignore[assignment]
+                    exclusion_data: list[Any] = db_record.exclusion_criteria or []  # type: ignore[assignment]
+                    reasoning_data: list[Any] = db_record.reasoning_steps or []  # type: ignore[assignment]
 
                     return ParsedCriteriaResponse(
                         nct_id=str(db_record.nct_id),
