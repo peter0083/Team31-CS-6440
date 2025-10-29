@@ -58,7 +58,7 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get cached settings instance."""
     try:
-        return Settings()
+        return Settings() # type: ignore[call-arg]
 
     except Exception as e:
         raise RuntimeError(f"Failed to load settings: {e}") from e

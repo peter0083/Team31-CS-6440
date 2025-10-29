@@ -4,7 +4,7 @@ Configuration: gpt-4o-mini only + PostgreSQL
 
 import asyncio
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -165,30 +165,30 @@ class MS2Service:
 
                 if db_record:
                     # Assert that these are lists, not Column objects
-                    inclusion_data = db_record.inclusion_criteria or []
-                    exclusion_data = db_record.exclusion_criteria or []
-                    reasoning_data = db_record.reasoning_steps or []
+                    inclusion_data: list[Any] = db_record.inclusion_criteria or []
+                    exclusion_data: list[Any] = db_record.exclusion_criteria or []
+                    reasoning_data: list[Any] = db_record.reasoning_steps or []
 
                     return ParsedCriteriaResponse(
                         nct_id=str(db_record.nct_id),
                         parsing_timestamp=db_record.parsing_timestamp,  # type: ignore[arg-type]
                         inclusion_criteria=[
-                            InclusionCriteriaRule(**r) for r in inclusion_data  # type: ignore[arg-type]
+                            InclusionCriteriaRule(**r) for r in inclusion_data  # type: ignore[union-attr]
                         ],
                         exclusion_criteria=[
-                            ExclusionCriteriaRule(**r) for r in exclusion_data  # type: ignore[arg-type]
+                            ExclusionCriteriaRule(**r) for r in exclusion_data  # type: ignore[union-attr]
                         ],
                         parsing_confidence=float(db_record.parsing_confidence),
                         total_rules_extracted=int(db_record.total_rules_extracted),
                         model_used=str(db_record.model_used),
                         reasoning_steps=[
-                            ReasoningStep(**s) for s in reasoning_data  # type: ignore[arg-type]
+                            ReasoningStep(**s) for s in reasoning_data  # type: ignore[union-attr]
                         ] if reasoning_data else None,
                     )
 
                 return None
-        except Exception:
-            return None
+        except Exception as e:
+            raise RuntimeError(f"Failed to load settings: {e}") from e
 
     async def save_to_db(
             self,
@@ -288,7 +288,7 @@ class MS2Service:
                     result.inclusion_criteria = inclusion_enriched
 
                     exclusion_enriched: list[ExclusionCriteriaRule] = []
-                    for rule in result.exclusion_criteria:
+                    for rule in result.exclusion_criteria:  # type: ignore[assignment]
                         rule_dict = rule.model_dump()
                         enriched = await self.medical_coding.enrich_rule_with_codes(rule_dict)
                         exclusion_enriched.append(ExclusionCriteriaRule(**enriched))
