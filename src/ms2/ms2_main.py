@@ -164,22 +164,28 @@ class MS2Service:
                 db_record = result.scalar_one_or_none()
 
                 if db_record:
+                    # Assert that these are lists, not Column objects
+                    inclusion_data = db_record.inclusion_criteria or []
+                    exclusion_data = db_record.exclusion_criteria or []
+                    reasoning_data = db_record.reasoning_steps or []
+
                     return ParsedCriteriaResponse(
-                        nct_id=str(db_record.nct_id),  # Cast to str
-                        parsing_timestamp=db_record.parsing_timestamp,
+                        nct_id=str(db_record.nct_id),
+                        parsing_timestamp=db_record.parsing_timestamp,  # type: ignore[arg-type]
                         inclusion_criteria=[
-                            InclusionCriteriaRule(**r) for r in (db_record.inclusion_criteria or [])
+                            InclusionCriteriaRule(**r) for r in inclusion_data  # type: ignore[arg-type]
                         ],
                         exclusion_criteria=[
-                            ExclusionCriteriaRule(**r) for r in (db_record.exclusion_criteria or [])
+                            ExclusionCriteriaRule(**r) for r in exclusion_data  # type: ignore[arg-type]
                         ],
-                        parsing_confidence=float(db_record.parsing_confidence),  # Cast to float
-                        total_rules_extracted=int(db_record.total_rules_extracted),  # Cast to int
-                        model_used=str(db_record.model_used),  # Cast to str
+                        parsing_confidence=float(db_record.parsing_confidence),
+                        total_rules_extracted=int(db_record.total_rules_extracted),
+                        model_used=str(db_record.model_used),
                         reasoning_steps=[
-                            ReasoningStep(**s) for s in (db_record.reasoning_steps or [])
-                        ] if db_record.reasoning_steps else None,
+                            ReasoningStep(**s) for s in reasoning_data  # type: ignore[arg-type]
+                        ] if reasoning_data else None,
                     )
+
                 return None
         except Exception:
             return None
@@ -281,12 +287,10 @@ class MS2Service:
                         inclusion_enriched.append(InclusionCriteriaRule(**enriched))
                     result.inclusion_criteria = inclusion_enriched
 
-                    exclusion_enriched : list[ExclusionCriteriaRule] = []
+                    exclusion_enriched: list[ExclusionCriteriaRule] = []
                     for rule in result.exclusion_criteria:
                         rule_dict = rule.model_dump()
-                        enriched = await self.medical_coding.enrich_rule_with_codes(
-                            rule_dict
-                        )
+                        enriched = await self.medical_coding.enrich_rule_with_codes(rule_dict)
                         exclusion_enriched.append(ExclusionCriteriaRule(**enriched))
                     result.exclusion_criteria = exclusion_enriched
 

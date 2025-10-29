@@ -33,6 +33,8 @@ jobs:
           poetry run pytest
 
       - name: Run linters
+        env:
+          OPENAI_API_KEY: "test-key-for-ci"
         run: |
           poetry run pre-commit run --all-files
           poetry run mypy .
