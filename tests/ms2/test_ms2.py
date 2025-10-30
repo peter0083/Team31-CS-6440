@@ -209,16 +209,15 @@ def test_root(client_with_mocked_llm):
 
 
 def test_health_check(client_with_mocked_llm):
-    """Test health check endpoint."""
-    # Mock database health check
-    with patch("src.ms2.ms2_database.check_db_connection", return_value=True):
+    # Mock database health check - patch in ms2_routes where it's used
+    with patch("src.ms2.ms2_routes.check_db_connection", new_callable=AsyncMock, return_value=True):
         response = client_with_mocked_llm.get("/api/ms2/health")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
         assert data["llm_provider"] == "openai"
         assert "uptime_seconds" in data
-
+        assert data["database_connected"] is True
 
 # ============================================================================
 # Mocked Parsing Tests
