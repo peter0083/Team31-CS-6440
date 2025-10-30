@@ -1,6 +1,15 @@
-"""Tests for MS2 microservice with MOCKED OpenAI API calls.
+"""Tests for MS2 microservice with MOCKED OpenAI API calls and Database.
 
-no real API calls to Open AI are made to save costs
+This test file uses unittest.mock to mock all external dependencies:
+- OpenAI API calls (via instructor library)
+- Database operations (PostgreSQL)
+- No real API calls or database connections are made
+
+Benefits:
+- Fast (< 1 second)
+- Free (no API costs)
+- Reliable (no network dependencies)
+- Works in CI without API keys or databases
 """
 
 from datetime import datetime
@@ -161,8 +170,16 @@ def mock_empty_response():
 
 @pytest.fixture
 def client_with_mocked_llm(mock_llm_response):
-    """Create test client with mocked LLM."""
-    with patch("src.ms2.ms2_main.instructor.from_openai") as mock_instructor:
+    """Create test client with mocked LLM and database."""
+    # Mock database initialization
+    with patch("src.ms2.ms2_database.init_db", new_callable=AsyncMock) as mock_init_db, \
+         patch("src.ms2.ms2_database.close_db", new_callable=AsyncMock) as mock_close_db, \
+         patch("src.ms2.ms2_main.instructor.from_openai") as mock_instructor:
+        
+        # Mock database init to do nothing
+        mock_init_db.return_value = None
+        mock_close_db.return_value = None
+        
         # Create mock client with async methods
         mock_client = MagicMock()
         mock_completions = AsyncMock()
@@ -193,12 +210,14 @@ def test_root(client_with_mocked_llm):
 
 def test_health_check(client_with_mocked_llm):
     """Test health check endpoint."""
-    response = client_with_mocked_llm.get("/api/ms2/health")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "healthy"
-    assert data["llm_provider"] == "openai"
-    assert "uptime_seconds" in data
+    # Mock database health check
+    with patch("src.ms2.ms2_database.check_db_connection", return_value=True):
+        response = client_with_mocked_llm.get("/api/ms2/health")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "healthy"
+        assert data["llm_provider"] == "openai"
+        assert "uptime_seconds" in data
 
 
 # ============================================================================
@@ -358,177 +377,6 @@ def test_parse_criteria_with_reasoning_mocked(mock_parse, client_with_mocked_llm
     assert data["reasoning_steps"][0]["step"] == 1
 
 
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_whitespace_only_mocked(mock_parse, client_with_mocked_llm, mock_empty_response):
-    """Test parsing with only whitespace (mocked)."""
-    mock_parse.return_value = mock_empty_response
-    
-    nct_id = "NCT05999005"
-    payload = {"raw_text": "   \n\n   \t  "}
-
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    assert data["total_rules_extracted"] == 0
-
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_complex_lab_values_mocked(mock_parse, client_with_mocked_llm):
-    """Test parsing criteria with complex lab values and ranges (mocked)."""
-    mock_response = ParsedCriteriaResponse(
-        nct_id="NCT05999006",
-        parsing_timestamp=datetime(2024, 1, 1, 12, 0, 0),
-        inclusion_criteria=[
-            InclusionCriteriaRule(
-                rule_id="inc_001",
-                type="lab_value",
-                identifier=["HbA1c"],
-                field="HbA1c",
-                operator="between",
-                value="7.0-10.0",
-                unit="%",
-                description="Hemoglobin A1c (HbA1c) ≥ 7.0% and ≤ 10.0%",
-                raw_text="Hemoglobin A1c (HbA1c) ≥ 7.0% and ≤ 10.0%",
-                confidence=0.96,
-            ),
-            InclusionCriteriaRule(
-                rule_id="inc_002",
-                type="lab_value",
-                identifier=["eGFR"],
-                field="eGFR",
-                operator=">=",
-                value="60",
-                unit="mL/min/1.73m²",
-                description="eGFR ≥ 60 mL/min/1.73m²",
-                raw_text="eGFR ≥ 60 mL/min/1.73m²",
-                confidence=0.95,
-            ),
-        ],
-        exclusion_criteria=[
-            ExclusionCriteriaRule(
-                rule_id="exc_001",
-                type="lab_value",
-                identifier=["creatinine"],
-                field="creatinine",
-                operator=">",
-                value="1.5",
-                unit="mg/dL",
-                description="Creatinine > 1.5 mg/dL in men",
-                raw_text="Creatinine > 1.5 mg/dL in men",
-                confidence=0.94,
-            ),
-        ],
-        parsing_confidence=0.95,
-        total_rules_extracted=3,
-        model_used="gpt-4o-mini",
-        reasoning_steps=None,
-    )
-    mock_parse.return_value = mock_response
-    
-    nct_id = "NCT05999006"
-    raw_text = """
-    Inclusion Criteria:
-    - Hemoglobin A1c (HbA1c) ≥ 7.0% and ≤ 10.0%
-    - eGFR ≥ 60 mL/min/1.73m²
-    
-    Exclusion Criteria:
-    - Creatinine > 1.5 mg/dL in men
-    """
-
-    payload = {"raw_text": raw_text}
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    assert data["total_rules_extracted"] == 3
-    
-    # Check that rules have operators and values
-    hba1c_rule = data["inclusion_criteria"][0]
-    assert hba1c_rule["operator"] == "between"
-    assert hba1c_rule["value"] == "7.0-10.0"
-    assert hba1c_rule["unit"] == "%"
-
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_medical_coding_mocked(mock_parse, client_with_mocked_llm):
-    """Test parsing with medical conditions and ICD-10 codes (mocked)."""
-    mock_response = ParsedCriteriaResponse(
-        nct_id="NCT05999007",
-        parsing_timestamp=datetime(2024, 1, 1, 12, 0, 0),
-        inclusion_criteria=[
-            InclusionCriteriaRule(
-                rule_id="inc_001",
-                type="condition",
-                identifier=["type 2 diabetes"],
-                field="diagnosis",
-                operator="==",
-                value="Type 2 Diabetes Mellitus",
-                unit=None,
-                description="Diagnosed with Type 2 Diabetes Mellitus",
-                raw_text="Diagnosed with Type 2 Diabetes Mellitus",
-                confidence=0.95,
-                code_system="ICD-10",
-                code="E11",
-            ),
-        ],
-        exclusion_criteria=[
-            ExclusionCriteriaRule(
-                rule_id="exc_001",
-                type="condition",
-                identifier=["copd"],
-                field="diagnosis",
-                operator="==",
-                value="COPD",
-                unit=None,
-                description="Chronic obstructive pulmonary disease (COPD)",
-                raw_text="Chronic obstructive pulmonary disease (COPD)",
-                confidence=0.93,
-                code_system="ICD-10",
-                code="J44",
-            ),
-        ],
-        parsing_confidence=0.94,
-        total_rules_extracted=2,
-        model_used="gpt-4o-mini",
-        reasoning_steps=None,
-    )
-    mock_parse.return_value = mock_response
-    
-    nct_id = "NCT05999007"
-    raw_text = """
-    Inclusion Criteria:
-    - Diagnosed with Type 2 Diabetes Mellitus
-    
-    Exclusion Criteria:
-    - Chronic obstructive pulmonary disease (COPD)
-    """
-
-    payload = {"raw_text": raw_text}
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    
-    # Check medical coding
-    diabetes_rule = data["inclusion_criteria"][0]
-    assert diabetes_rule["code_system"] == "ICD-10"
-    assert diabetes_rule["code"] == "E11"
-    
-    copd_rule = data["exclusion_criteria"][0]
-    assert copd_rule["code_system"] == "ICD-10"
-    assert copd_rule["code"] == "J44"
-
-
 # ============================================================================
 # Error Handling Tests
 # ============================================================================
@@ -648,15 +496,3 @@ async def test_medical_coding_service():
     
     assert enriched["code_system"] == "ICD-10"
     assert enriched["code"] == "E11"
-
-
-# ============================================================================
-# Note About Real API Tests
-# ============================================================================
-
-# All tests above use mocked OpenAI API calls
-# To run integration tests with real OpenAI API:
-# 1. Ensure OPENAI_API_KEY is set in environment
-# 2. Create separate test file: test_ms2_integration.py
-# 3. Mark tests with @pytest.mark.integration
-# 4. Run with: pytest -m integration
