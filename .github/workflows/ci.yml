@@ -44,7 +44,7 @@ jobs:
         env:
           OPENAI_API_KEY: "dummy-key-for-tests"  # Mocked tests don't use this
         run: |
-          poetry run pytest tests/ -v --cov=src --cov-report=term-missing
+          poetry run pytest tests/ -v 
       
       - name: Run MS2-specific tests
         env:
