@@ -11,19 +11,70 @@ on:
       - MS2   # Run on PRs targeting MS2
 
 jobs:
-  test:
-    name: Run Tests
+  # Docker Build & Test Job - NEW!
+  docker-test:
+    name: Docker Build & Test
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Create .env file for tests
+        run: |
+          mkdir -p src/ms2
+          echo "OPENAI_API_KEY=dummy-key-for-tests" > src/ms2/.env
+      
+      - name: Build MS2 Docker image
+        run: |
+          docker-compose build ms2
+      
+      - name: Build MS2 Test Docker image
+        run: |
+          docker-compose build ms2-test
+      
+      - name: Start PostgreSQL
+        run: |
+          docker-compose up -d postgres
+      
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          timeout 60 bash -c 'until docker-compose exec -T postgres pg_isready -U postgres; do sleep 2; done'
+      
+      - name: Run Docker tests
+        run: |
+          docker-compose run --rm ms2-test pytest tests/ms2/test_ms2.py -v --junitxml=test-results.xml
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-test-results
+          path: test-results.xml
+          retention-days: 7
+      
+      - name: Stop containers
+        if: always()
+        run: |
+          docker-compose down -v
 
+  # Original Python Test Job - KEPT for backwards compatibility
+  test:
+    name: Run Tests (Poetry)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
+      
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -33,24 +84,24 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
-
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --with dev
-
+      
       - name: Run all unit tests
         env:
           OPENAI_API_KEY: "dummy-key-for-tests"  # Mocked tests don't use this
         run: |
-          poetry run pytest tests/ -v 
+          poetry run pytest tests/ -v
       
       - name: Run MS2-specific tests
         env:
           OPENAI_API_KEY: "dummy-key-for-tests"
         run: |
-          poetry run pytest tests/ms2/test_ms2.py -v 
+          poetry run pytest tests/ms2/test_ms2.py -v
 
   lint:
     name: Run Linters
@@ -59,12 +110,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
+      
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -74,27 +125,27 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
-
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --with dev
-
+      
       - name: Run pre-commit hooks
         run: |
           poetry run pre-commit run --all-files
-
+      
       - name: Run mypy type checking
         env:
           OPENAI_API_KEY: "dummy-key-for-mypy"
         run: |
           poetry run mypy .
-
+      
       - name: Run ruff linter
         run: |
           poetry run ruff check .
-
+      
       - name: Check import sorting
         run: |
           poetry run isort --check-only .
@@ -109,24 +160,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
+      
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install poetry
           poetry install --no-root --with dev
-
+      
       - name: Run MS2 unit tests with coverage
         env:
           OPENAI_API_KEY: "dummy-key-for-tests"
         run: |
-          poetry run pytest tests/ms2/test_ms2.py -v 
-
+          poetry run pytest tests/ms2/test_ms2.py -v --cov=src.ms2 --cov-report=html
+      
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
@@ -134,7 +185,7 @@ jobs:
           name: ms2-coverage-report
           path: htmlcov/
           retention-days: 7
-
+      
       - name: Check MS2 code quality
         run: |
           poetry run ruff check src/ms2/ tests/ms2/

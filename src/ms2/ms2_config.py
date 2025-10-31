@@ -16,6 +16,7 @@ class Settings(BaseSettings):
         env_file=str(CONFIG_DIR / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",  # add for pydantic v2 in docker for testing
     )
 
     SERVICE_NAME: str = "MS2 criteria parser"
@@ -23,6 +24,9 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     HOST: str = "0.0.0.0"
     PORT: int = 8002
+
+    ENVIRONMENT: str = "development"  # add for pydantic v2 in docker for testing
+    LOG_LEVEL: str = "info"           # add for pydantic v2 in docker for testing
 
     # OpenAI Configuration
     OPENAI_API_KEY: str

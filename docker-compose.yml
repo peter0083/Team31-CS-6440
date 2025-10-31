@@ -11,39 +11,93 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ms2_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # MS2 Service (optional - if you want to run in Docker)
-  # ms2:
-  #   build: .
-  #   container_name: ms2_service
-  #   ports:
-  #     - "8002:8002"
-  #   environment:
-  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
-  #     - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
-  #     - MS1_URL=http://host.docker.internal:8001
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   volumes:
-  #     - ./src:/app/src
+  # MS2 Microservice - Clinical Trial Criteria Parser
+  ms2:
+    build:
+      context: .
+      dockerfile: Dockerfile.ms2
+    container_name: ms2_service
+    ports:
+      - "8002:8002"
+    env_file:
+      - src/ms2/.env  # Use .env file in src/ms2/
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
+      - MS1_URL=http://host.docker.internal:8001
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ms2_network
+    volumes:
+      # Mount source code for development (comment out for production)
+      - ./src:/app/src
+      # Mount data directory for persistent storage
+      - ./data/ms2:/app/data/ms2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8002/api/ms2/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
 
-  # Redis (for future use - uncomment when ready)
-  # redis:
-  #   image: redis:7-alpine
-  #   container_name: ms2_redis
-  #   ports:
-  #     - "6379:6379"
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  # MS2 Test Runner - For running unit tests in Docker
+  ms2-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.ms2.test
+    container_name: ms2_test
+    environment:
+      # CRITICAL: Set required environment variables for Settings validation
+      - OPENAI_API_KEY=dummy-key-for-tests
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
+      - MS1_URL=http://localhost:8001
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      postgres: # ← Right after environment, before volumes
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./poetry.lock:/app/poetry.lock
+    networks:
+      - ms2_network
+
+  # Redis (for caching - optional)
+  redis:
+    image: redis:7-alpine
+    container_name: ms2_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ms2_network
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ms2_network:
+    driver: bridge
