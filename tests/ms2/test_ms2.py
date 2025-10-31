@@ -48,6 +48,8 @@ def mock_llm_response() -> ParsedCriteriaResponse:
                 description="Age 18 to 65 years",
                 raw_text="Age 18 to 65 years",
                 confidence=0.95,
+                code_system=None,
+                code=None,
             ),
             InclusionCriteriaRule(
                 rule_id="inc_002",
@@ -76,6 +78,8 @@ def mock_llm_response() -> ParsedCriteriaResponse:
                 description="Pregnant or breastfeeding",
                 raw_text="Pregnant or breastfeeding",
                 confidence=0.98,
+                code_system=None,
+                code=None,
             ),
         ],
         parsing_confidence=0.95,
@@ -103,6 +107,8 @@ def mock_diabetes_response() -> ParsedCriteriaResponse:
                 description="Age 18 to 65 years",
                 raw_text="Age 18 to 65 years",
                 confidence=0.98,
+                code_system=None,
+                code=None,
             ),
             InclusionCriteriaRule(
                 rule_id="inc_002",
@@ -129,6 +135,8 @@ def mock_diabetes_response() -> ParsedCriteriaResponse:
                 description="HbA1c between 7.0% and 10.0%",
                 raw_text="HbA1c between 7.0% and 10.0%",
                 confidence=0.94,
+                code_system=None,
+                code=None,
             ),
         ],
         exclusion_criteria=[
@@ -352,6 +360,8 @@ def test_parse_criteria_with_reasoning_mocked(
                 description="Adults aged 18-50",
                 raw_text="Adults aged 18-50",
                 confidence=0.98,
+                code_system=None,
+                code=None,
             ),
         ],
         exclusion_criteria=[],
@@ -409,9 +419,10 @@ def test_parse_criteria_invalid_json(client_with_mocked_llm: TestClient) -> None
     """Test parsing with malformed JSON."""
     nct_id = "NCT05999009"
     
+    # Use content parameter instead of data for raw string
     response = client_with_mocked_llm.post(
         f"/api/ms2/parse-criteria/{nct_id}",
-        data="not a json",
+        content=b"not a json",
         headers={"Content-Type": "application/json"}
     )
     
