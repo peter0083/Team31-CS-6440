@@ -13,6 +13,7 @@ Benefits:
 """
 
 from datetime import datetime
+from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -30,7 +31,7 @@ from src.ms2.ms2_pydantic_models import (
 # ============================================================================
 
 @pytest.fixture
-def mock_llm_response():
+def mock_llm_response() -> ParsedCriteriaResponse:
     """Mock response from LLM parsing."""
     return ParsedCriteriaResponse(
         nct_id="NCT05123456",
@@ -85,7 +86,7 @@ def mock_llm_response():
 
 
 @pytest.fixture
-def mock_diabetes_response():
+def mock_diabetes_response() -> ParsedCriteriaResponse:
     """Mock response for diabetes study."""
     return ParsedCriteriaResponse(
         nct_id="NCT05999001",
@@ -154,7 +155,7 @@ def mock_diabetes_response():
 
 
 @pytest.fixture
-def mock_empty_response():
+def mock_empty_response() -> ParsedCriteriaResponse:
     """Mock response for empty criteria."""
     return ParsedCriteriaResponse(
         nct_id="NCT05999004",
@@ -169,7 +170,7 @@ def mock_empty_response():
 
 
 @pytest.fixture
-def client_with_mocked_llm(mock_llm_response):
+def client_with_mocked_llm(mock_llm_response: ParsedCriteriaResponse) -> Generator[TestClient, None, None]:
     """Create test client with mocked LLM and database."""
     # Mock database initialization
     with patch("src.ms2.ms2_database.init_db", new_callable=AsyncMock) as mock_init_db, \
@@ -199,7 +200,7 @@ def client_with_mocked_llm(mock_llm_response):
 # Basic Endpoint Tests
 # ============================================================================
 
-def test_root(client_with_mocked_llm):
+def test_root(client_with_mocked_llm: TestClient) -> None:
     """Test root endpoint."""
     response = client_with_mocked_llm.get("/api/ms2/")
     assert response.status_code == 200
@@ -208,7 +209,8 @@ def test_root(client_with_mocked_llm):
     assert data["status"] == "running"
 
 
-def test_health_check(client_with_mocked_llm):
+def test_health_check(client_with_mocked_llm: TestClient) -> None:
+    """Test health check endpoint."""
     # Mock database health check - patch in ms2_routes where it's used
     with patch("src.ms2.ms2_routes.check_db_connection", new_callable=AsyncMock, return_value=True):
         response = client_with_mocked_llm.get("/api/ms2/health")
@@ -219,12 +221,17 @@ def test_health_check(client_with_mocked_llm):
         assert "uptime_seconds" in data
         assert data["database_connected"] is True
 
+
 # ============================================================================
 # Mocked Parsing Tests
 # ============================================================================
 
 @patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_direct_simple_mocked(mock_parse, client_with_mocked_llm, mock_llm_response):
+def test_parse_criteria_direct_simple_mocked(
+    mock_parse: MagicMock,
+    client_with_mocked_llm: TestClient,
+    mock_llm_response: ParsedCriteriaResponse
+) -> None:
     """Test direct parsing with simple criteria (mocked LLM)."""
     mock_parse.return_value = mock_llm_response
     
@@ -256,8 +263,10 @@ def test_parse_criteria_direct_simple_mocked(mock_parse, client_with_mocked_llm,
 
 @patch("src.ms2.ms2_main.MS2Service.parse_criteria")
 def test_parse_criteria_direct_diabetes_study_mocked(
-    mock_parse, client_with_mocked_llm, mock_diabetes_response
-):
+    mock_parse: MagicMock,
+    client_with_mocked_llm: TestClient,
+    mock_diabetes_response: ParsedCriteriaResponse
+) -> None:
     """Test parsing a realistic diabetes study criteria (mocked)."""
     mock_parse.return_value = mock_diabetes_response
     
@@ -296,7 +305,11 @@ def test_parse_criteria_direct_diabetes_study_mocked(
 
 
 @patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_direct_empty_mocked(mock_parse, client_with_mocked_llm, mock_empty_response):
+def test_parse_criteria_direct_empty_mocked(
+    mock_parse: MagicMock,
+    client_with_mocked_llm: TestClient,
+    mock_empty_response: ParsedCriteriaResponse
+) -> None:
     """Test parsing with empty criteria text (mocked)."""
     mock_parse.return_value = mock_empty_response
     
@@ -319,7 +332,10 @@ def test_parse_criteria_direct_empty_mocked(mock_parse, client_with_mocked_llm, 
 
 
 @patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_with_reasoning_mocked(mock_parse, client_with_mocked_llm):
+def test_parse_criteria_with_reasoning_mocked(
+    mock_parse: MagicMock,
+    client_with_mocked_llm: TestClient
+) -> None:
     """Test parsing with reasoning steps enabled (mocked)."""
     mock_response = ParsedCriteriaResponse(
         nct_id="NCT05999003",
@@ -380,7 +396,7 @@ def test_parse_criteria_with_reasoning_mocked(mock_parse, client_with_mocked_llm
 # Error Handling Tests
 # ============================================================================
 
-def test_parse_criteria_missing_payload(client_with_mocked_llm):
+def test_parse_criteria_missing_payload(client_with_mocked_llm: TestClient) -> None:
     """Test parsing without payload."""
     nct_id = "NCT05999008"
     
@@ -389,7 +405,7 @@ def test_parse_criteria_missing_payload(client_with_mocked_llm):
     assert response.status_code == 422
 
 
-def test_parse_criteria_invalid_json(client_with_mocked_llm):
+def test_parse_criteria_invalid_json(client_with_mocked_llm: TestClient) -> None:
     """Test parsing with malformed JSON."""
     nct_id = "NCT05999009"
     
@@ -403,7 +419,10 @@ def test_parse_criteria_invalid_json(client_with_mocked_llm):
 
 
 @patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_llm_error_mocked(mock_parse, client_with_mocked_llm):
+def test_parse_criteria_llm_error_mocked(
+    mock_parse: MagicMock,
+    client_with_mocked_llm: TestClient
+) -> None:
     """Test handling of LLM API errors (mocked)."""
     # Simulate LLM error
     mock_parse.side_effect = RuntimeError("OpenAI API error")
@@ -425,7 +444,11 @@ def test_parse_criteria_llm_error_mocked(mock_parse, client_with_mocked_llm):
 # ============================================================================
 
 @patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_performance_mocked(mock_parse, client_with_mocked_llm, mock_llm_response):
+def test_parse_criteria_performance_mocked(
+    mock_parse: MagicMock,
+    client_with_mocked_llm: TestClient,
+    mock_llm_response: ParsedCriteriaResponse
+) -> None:
     """Test response time with mocked LLM (should be fast)."""
     import time
     
@@ -454,7 +477,7 @@ def test_parse_criteria_performance_mocked(mock_parse, client_with_mocked_llm, m
 # ============================================================================
 
 @pytest.mark.asyncio
-async def test_ms2_service_parse_empty_text():
+async def test_ms2_service_parse_empty_text() -> None:
     """Test MS2Service.parse_criteria with empty text (no LLM call)."""
     with patch("src.ms2.ms2_main.instructor.from_openai"):
         from src.ms2.ms2_main import MS2Service
@@ -477,7 +500,7 @@ async def test_ms2_service_parse_empty_text():
 
 
 @pytest.mark.asyncio
-async def test_medical_coding_service():
+async def test_medical_coding_service() -> None:
     """Test medical coding enrichment."""
     from src.ms2.ms2_main import MedicalCodingService
     
