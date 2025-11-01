@@ -11,7 +11,7 @@ on:
       - MS2   # Run on PRs targeting MS2
 
 jobs:
-  # Docker Build & Test Job - NEW!
+  # Docker Build & Test Job
   docker-test:
     name: Docker Build & Test
     runs-on: ubuntu-latest
@@ -30,23 +30,23 @@ jobs:
       
       - name: Build MS2 Docker image
         run: |
-          docker-compose build ms2
+          docker compose build ms2
       
       - name: Build MS2 Test Docker image
         run: |
-          docker-compose build ms2-test
+          docker compose build ms2-test
       
       - name: Start PostgreSQL
         run: |
-          docker-compose up -d postgres
+          docker compose up -d postgres
       
       - name: Wait for PostgreSQL to be ready
         run: |
-          timeout 60 bash -c 'until docker-compose exec -T postgres pg_isready -U postgres; do sleep 2; done'
+          timeout 60 bash -c 'until docker compose exec -T postgres pg_isready -U postgres; do sleep 2; done'
       
       - name: Run Docker tests
         run: |
-          docker-compose run --rm ms2-test pytest tests/ms2/test_ms2.py -v --junitxml=test-results.xml
+          docker compose run --rm ms2-test pytest tests/ms2/test_ms2.py -v --junitxml=test-results.xml
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -56,10 +56,16 @@ jobs:
           path: test-results.xml
           retention-days: 7
       
+      - name: Show Docker logs on failure
+        if: failure()
+        run: |
+          docker compose logs postgres
+          docker compose logs ms2-test || true
+      
       - name: Stop containers
         if: always()
         run: |
-          docker-compose down -v
+          docker compose down -v
 
   # Original Python Test Job - KEPT for backwards compatibility
   test:
@@ -176,7 +182,7 @@ jobs:
         env:
           OPENAI_API_KEY: "dummy-key-for-tests"
         run: |
-          poetry run pytest tests/ms2/test_ms2.py -v
+          poetry run pytest tests/ms2/test_ms2.py -v --cov=src.ms2 --cov-report=html
       
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
