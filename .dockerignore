@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# Poetry - COMMENTED OUT TO ALLOW PROD TEST CONTAINER BUILDS
+# poetry.lock
+
+# Tests - COMMENTED OUT TO ALLOW TEST CONTAINER BUILDS
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+# tests/
+# test_*.py
+# *_test.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Data and temp files
+data/
+tmp/
+temp/
+*.tmp
+
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+
+# Documentation
+README.md
+docs/
+
+# Development files
+activate_env.sh
+setup.sh
+*.md
+
+# Docker
+.dockerignore
+docker-compose.override.yml
