@@ -11,7 +11,7 @@ dist/
 src/ms2/.env
 
 # Poetry
-poetry.lock
+# poetry.lock # need to make it available for GitHub Actions for builds
 
 # Python IDEs and logs
 .vscode/
