@@ -3,7 +3,7 @@ from __future__ import annotations
 import glob
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Path
@@ -122,44 +122,30 @@ def _get_hive() -> Any:
 
 
 def q(sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
-    """
-    Run a SQL query against DuckDB or Hive and return a pandas DataFrame.
-    Named parameter style: use `:name` in SQL; we'll bind accordingly for DuckDB,
-    or perform a safe format for Hive (limited to strings/numbers).
-    """
     if USE_DUCKDB:
         con = _get_duckdb()
-        if params:
-            # DuckDB supports Python named parameters via 'execute' with a dict
-            res = con.execute(sql, params).fetch_df()
-        else:
-            res = con.execute(sql).fetch_df()
-        return res
+        res = con.execute(sql, params or {}).fetch_df()
+        return cast(pd.DataFrame, res)  # <- make type explicit
 
-    # Hive path
     con = _get_hive()
     cur = con.cursor()
-
     bound_sql = sql
     if params:
-        # Minimal safe parameter binding for Hive (no server-side named params).
-        # Only substitute simple literals.
         def _escape(v: Any) -> str:
             if v is None:
                 return "NULL"
             if isinstance(v, (int, float)):
                 return str(v)
-            # naive string escape
-            s = str(v).replace("'", "''")
-            return f"'{s}'"
-
+            return "'" + str(v).replace("'", "''") + "'"
         for k, v in params.items():
             bound_sql = bound_sql.replace(f":{k}", _escape(v))
 
     cur.execute(bound_sql)
     cols = [c[0] for c in cur.description] if cur.description else []
     rows = cur.fetchall() if cur.description else []
-    return pd.DataFrame(rows, columns=cols)
+    df = pd.DataFrame(rows, columns=cols)
+    return cast(pd.DataFrame, df)  # <- explicit
+
 
 
 # =========================================================
