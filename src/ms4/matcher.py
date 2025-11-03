@@ -1,4 +1,5 @@
 import time
+
 from trial import Trial
 
 sample_trial_data = {
