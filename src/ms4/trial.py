@@ -99,7 +99,7 @@ class Trial:
         return text
 
     def evaluate(self, patients) -> str:
-        matches = []
+        matches:list[ScoredPatient] = []
         total_patients_evaluated = 0
         total_patients_matches_found=0
         exclusion_count = 0
