@@ -5,7 +5,7 @@ from typing import Union
 
 
 class Trial:
-    def __init__(self,trial_data):
+    def __init__(self,trial_data:str)-> None:
         self.__nct_id:str = trial_data['nct_id']
         self.__parsing_timestamp:str = trial_data['parsing_timestamp']
 
@@ -63,10 +63,10 @@ class Trial:
                 self.__exclusion_criteria.append(Criteria(rule_id, crit_type,identifier, field, operator,
                             value, raw_text, description, confidence, coding_system,coding, unit))
 
-        self.__parsing_confidence = trial_data['parsing_confidence'] if 'parsing_confidence' in trial_data else None
-        self.__total_rules_extracted:int = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else None
+        self.__parsing_confidence:float = trial_data['parsing_confidence'] if 'parsing_confidence' in trial_data else 0
+        self.__total_rules_extracted:int = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else 0
         self.__model_used:str = trial_data['model_used'] if 'model_used' in trial_data else ""
-        self.__meet_percentage = 100
+        self.__meet_percentage:float = 100
 
         self.__reasoning_steps = []
         if 'reasoning_steps' in trial_data:
