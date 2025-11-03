@@ -1,0 +1,44 @@
+{
+  "nct_id": "NCT05123456",
+  "parsing_timestamp": "2025-10-09T18:00:00Z",
+  "inclusion_criteria": [
+    {
+      "rule_id": "inc_001",
+      "type": "demographic",
+      "identifier": [
+        "age"
+      ],
+      "field": "age",
+      "operator": "between",
+      "value": [18, 65],
+      "unit": "years",
+      "raw_text": "Age 18-65 years"
+    },
+    {
+      "rule_id": "inc_002",
+      "type": "lab_result",
+      "identifier": [
+        "test",
+        "HbA1c"
+      ],
+      "field": "value",
+      "operator": ">=",
+      "value": 7.0,
+      "unit": "%",
+      "raw_text": "HbA1c ≥ 7.0%"
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "rule_id": "exc_001",
+      "type": "condition",
+      "identifier": [
+        "pregnancy_status"
+      ],
+      "field": "pregnancy_status",
+      "operator": "==",
+      "value": "pregnant",
+      "raw_text": "Pregnant women"
+    }
+  ]
+}

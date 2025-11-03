@@ -11,6 +11,11 @@ fastapi = {extras = ["standard"], version = "0.118.3"}
 uvicorn = "^0.32.0"
 pydantic = "^2.10.0"
 pydantic-settings = "^2.11.0"
+openai = "1.70.0"
+instructor = "1.11.3"
+sqlalchemy = "^2.0.44"
+asyncpg = "^0.30.0"
+greenlet = "^3.2.4"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.7.4"
