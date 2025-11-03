@@ -98,7 +98,7 @@ class Trial:
         text = "Trial ID: " + str(self.nct_id)
         return text
 
-    def evaluate(self, patients) -> str:
+    def evaluate(self, patients:dict) -> dict:
         matches:list[ScoredPatient] = []
         total_patients_evaluated = 0
         total_patients_matches_found=0
