@@ -1,7 +1,8 @@
 from criteria import Criteria
+from typing import LiteralString
 from reasoning_step import ReasoningStep
 from scored_patient import ScoredPatient
-from typing import LiteralString
+
 
 class Trial:
     def __init__(self,trial_data: dict)->None:
