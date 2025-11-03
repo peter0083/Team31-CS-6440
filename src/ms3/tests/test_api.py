@@ -1,19 +1,17 @@
-from fastapi.testclient import TestClient
-from main import app
+from typing import Final
 
-client = TestClient(app)
+import requests
 
-def test_live():
-    r = client.get("/live")
+BASE: Final = "http://localhost:8001"
+
+def test_live() -> None:
+    r = requests.get(f"{BASE}/live", timeout=5)
     assert r.status_code == 200
 
-def test_ready_shape():
-    r = client.get("/ready")
-    # readiness might be 503 if warehouse is offline; accept either
-    assert r.status_code in (200,503)
+def test_ready_or_503() -> None:
+    r = requests.get(f"{BASE}/ready", timeout=5)
+    assert r.status_code in (200, 503)
 
-def test_contract_keys():
-    # mock a patient id path (you can monkeypatch q() for predictable DF)
-    # For now just assert 404 is a valid outcome (shape & error path ok)
-    r = client.get("/api/ms3/patient-phenotype/does-not-exist")
-    assert r.status_code in (200,404)
+def test_patient_example_contract() -> None:
+    r = requests.get(f"{BASE}/api/ms3/patient-phenotype/patient-001", timeout=10)
+    assert r.status_code in (200, 404)

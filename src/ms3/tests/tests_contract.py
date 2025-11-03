@@ -18,12 +18,13 @@ SCHEMA = {
   }
 }
 
-def test_live():
+def test_live_contract() -> None:
     r = requests.get("http://localhost:8001/live", timeout=5)
     assert r.status_code == 200
 
-def test_patient_example_contract():
-    r = requests.get("http://localhost:8001/api/ms3/patient-phenotype/patient-001", timeout=5)
-    assert r.status_code in (200,404)
+def test_contract_if_present() -> None:
+    r = requests.get("http://localhost:8001/api/ms3/patient-phenotype/patient-001", timeout=10)
     if r.status_code == 200:
         jsonschema.validate(r.json(), SCHEMA)
+    else:
+        assert r.status_code == 404

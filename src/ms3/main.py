@@ -8,7 +8,6 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
-
 from schemas import Condition as ConditionItem  # type: ignore
 from schemas import DataCompleteness, Demographics, LabResult, Medication, Phenotype
 
@@ -105,7 +104,7 @@ def _get_duckdb() -> "duckdb.DuckDBPyConnection":
     return _duckdb_conn
 
 
-def _get_hive():
+def _get_hive() -> Any:
     """Return a Hive/Thrift connection (create if missing)."""
     global _hive_conn
     if not _HIVE_AVAILABLE:
@@ -187,29 +186,11 @@ def live() -> Dict[str, str]:
 
 @app.get("/ready")
 def ready() -> Dict[str, str]:
-    """
-    Readiness checks:
-    - Can we open a DB connection?
-    - If DuckDB without file: if globs exist, views are created.
-    - Try a lightweight count on patient table (tolerate empty).
-    """
     try:
-        if USE_DUCKDB:
-            _ = _get_duckdb()
-        else:
-            _ = _get_hive()
+        _ = _get_duckdb() if USE_DUCKDB else _get_hive()
+        _ = q(f"SELECT 1 FROM {TBL_PATIENT} LIMIT 1")
     except Exception as e:
-        # Not ready: cannot connect
-        raise HTTPException(status_code=503, detail=f"db_not_ready: {e}")
-
-    # Optional sanity query (tolerate zero rows)
-    try:
-        sql = f"SELECT 1 FROM {TBL_PATIENT} LIMIT 1"
-        _ = q(sql)
-    except Exception:
-        # Patient table might not exist yet; still report not ready
-        raise HTTPException(status_code=503, detail="patient_table_missing")
-
+        raise HTTPException(status_code=503, detail=f"not_ready: {e}")
     return {"status": "ready"}
 
 
