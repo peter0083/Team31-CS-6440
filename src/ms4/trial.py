@@ -59,7 +59,7 @@ class Trial:
                 unit = crit['unit'] if 'unit' in crit else None
 
                 self.exclusion_criteria.append(Criteria(rule_id, crit_type,identifier, field, operator,
-                            value, raw_text, description, confidence, coding_system,coding, unit))
+                            values, raw_text, description, confidence, coding_system,coding, unit))
 
         self.parsing_confidence = trial_data['parsing_confidence'] if 'parsing_confidence' in trial_data else None
         self.total_rules_extracted = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else None
