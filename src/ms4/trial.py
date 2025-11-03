@@ -95,7 +95,7 @@ class Trial:
         self.meet_percentage = meet_percentage
 
     def str(self) -> str:
-        text = "Trial ID: " + self.nct_id
+        text = "Trial ID: " + str(self.nct_id)
         return text
 
     def evaluate(self, patients) -> str:
