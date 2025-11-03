@@ -1,53 +1,59 @@
-# schemas.py
+from __future__ import annotations
+
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class Demographics(BaseModel):
-    age: int = Field(..., example=45)
-    gender: str = Field(..., example="female")
-    race: str = Field(..., example="White")
-    ethnicity: str = Field(..., example="Not Hispanic or Latino")
+    age: int = Field(default=0, ge=0)
+    gender: Optional[str] = None
+    race: Optional[str] = None
+    ethnicity: Optional[str] = None
+
 
 class Condition(BaseModel):
-    code_system: str = Field(..., example="ICD-10")
-    code: str = Field(..., example="E11")
-    description: str = Field(..., example="Type 2 diabetes mellitus")
-    onset_date: Optional[str] = Field(None, example="2020-03-15")
-    status: Optional[str] = Field(None, example="active")
+    code_system: Optional[str] = None
+    code: Optional[str] = None
+    description: Optional[str] = None
+    onset_date: Optional[str] = None
+    status: Optional[str] = None
+
 
 class LabResult(BaseModel):
-    test: str = Field(..., example="HbA1c")
-    value: Optional[float] = Field(None, example=8.2)
-    unit: Optional[str] = Field(None, example="%")
-    date: Optional[str] = Field(None, example="2025-09-15")
-    reference_range: Optional[str] = Field(None, example="4.0-5.6")
-    status: Optional[str] = Field(None, example="final")
+    test: str
+    value: Optional[float] = None
+    unit: Optional[str] = None
+    date: Optional[str] = None
+    reference_range: Optional[str] = None
+    status: Optional[str] = None
+
 
 class Medication(BaseModel):
-    name: str = Field(..., example="Metformin")
-    generic_name: Optional[str] = Field("", example="metformin hydrochloride")
-    dosage: Optional[str] = Field("", example="500mg")
-    frequency: Optional[str] = Field("", example="twice daily")
-    start_date: Optional[str] = Field(None, example="2020-03-20")
-    status: Optional[str] = Field(None, example="active")
+    name: str
+    generic_name: Optional[str] = None
+    dosage: Optional[str] = None
+    frequency: Optional[str] = None
+    start_date: Optional[str] = None
+    status: Optional[str] = None
+
 
 class DataCompleteness(BaseModel):
-    overall_score: float = Field(..., example=0.85)
-    demographics_score: float = Field(..., example=1.0)
-    conditions_score: float = Field(..., example=0.9)
-    labs_score: float = Field(..., example=0.8)
-    medications_score: float = Field(..., example=0.95)
-    missing_fields: List[str] = Field(default_factory=list, example=["family_history","allergies"])
+    overall_score: float
+    demographics_score: float
+    conditions_score: float
+    labs_score: float
+    medications_score: float
+    missing_fields: List[str] = Field(default_factory=list)
+
 
 class Phenotype(BaseModel):
-    patient_id: str = Field(..., example="patient-001")
-    phenotype_timestamp: str = Field(..., example="2025-10-09T18:00:00Z")
+    patient_id: str
+    phenotype_timestamp: str
     demographics: Demographics
-    conditions: List[Condition]
-    lab_results: List[LabResult]
-    medications: List[Medication]
-    pregnancy_status: str = Field(..., example="not_pregnant")
-    smoking_status: str = Field(..., example="never_smoker")
+    conditions: List[Condition] = Field(default_factory=list)
+    lab_results: List[LabResult] = Field(default_factory=list)
+    medications: List[Medication] = Field(default_factory=list)
+    pregnancy_status: str
+    smoking_status: str
     data_completeness: DataCompleteness
