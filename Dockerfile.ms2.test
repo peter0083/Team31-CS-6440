@@ -1,0 +1,40 @@
+# Dockerfile for running MS2 tests
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+ENV PYTHONPATH=/app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry==1.7.1
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Configure poetry to not create a virtual environment
+RUN poetry config virtualenvs.create false
+
+# Install dependencies including dev dependencies for testing
+RUN poetry install --no-root --with dev --no-interaction --no-ansi
+
+# Copy application code
+COPY src/ ./src/
+COPY tests/ ./tests/
+
+# Create non-root user
+RUN useradd -m -u 1000 testuser && \
+    chown -R testuser:testuser /app
+
+# Switch to non-root user
+USER testuser
+
+# Default command runs tests
+CMD ["pytest", "tests/ms2/test_ms2.py", "-v"]
