@@ -1,6 +1,4 @@
 import time
-
-from scored_patient import ScoredPatient
 from trial import Trial
 
 sample_trial_data = {
