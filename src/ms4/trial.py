@@ -137,7 +137,7 @@ class Trial:
         heading += "|"
         return heading
 
-    def set_meet_percentage(self, meet_percentage) -> None:
+    def set_meet_percentage(self, meet_percentage:float) -> None:
         self.meet_percentage = meet_percentage
 
     def str(self) -> str:

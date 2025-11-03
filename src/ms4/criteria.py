@@ -1,3 +1,4 @@
+
 class Criteria:
     def __init__(
         self,
@@ -32,7 +33,7 @@ class Criteria:
         if unit:
             self.unit = unit
 
-    def meets(self, patient) -> tuple[bool, str]:
+    def meets(self, patient:dict) -> tuple[bool, str]:
         if self.type == "demographic":
             if "demographics" not in patient["general"]:
                 # print("check 1")
