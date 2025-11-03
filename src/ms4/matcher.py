@@ -397,7 +397,7 @@ def print_dots(count: int = 3, delay: float = 0.25, end: str = "\n") -> None:
 
 def main() -> None:
     #print_dots(3, 0.25)
-    trial_json = (sample_trial_data)
+    trial_json = sample_trial_data
     trial = Trial(trial_json)
     trial.set_meet_percentage(45)
     json = trial.evaluate(patients)

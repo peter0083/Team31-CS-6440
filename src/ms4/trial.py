@@ -1,15 +1,13 @@
 from criteria import Criteria
 from reasoning_step import ReasoningStep
 from scored_patient import ScoredPatient
-from typing import Union
 
 
 class Trial:
-    def __init__(self,trial_data:str)-> None:
-        self.__nct_id:str = trial_data['nct_id']
-        self.__parsing_timestamp:str = trial_data['parsing_timestamp']
-
-        self.__inclusion_criteria = []
+    def __init__(self,trial_data: str)->None:
+        self.nct_id = trial_data['nct_id']
+        self.parsing_timestamp = trial_data['parsing_timestamp']
+        self.inclusion_criteria = []
 
         if 'inclusion_criteria' in trial_data:
             inclusion_criteria = trial_data['inclusion_criteria']
@@ -39,10 +37,10 @@ class Trial:
                  coding_system:str=None,
                  code:str=None, 
                  unit:str=""'''
-                self.__inclusion_criteria.append(Criteria(rule_id, crit_type,identifier, field, operator,
+                self.inclusion_criteria.append(Criteria(rule_id, crit_type,identifier, field, operator,
                             value, raw_text, description, confidence, coding_system,coding, unit))
 
-        self.__exclusion_criteria = []
+        self.exclusion_criteria = []
         if 'exclusion_criteria' in trial_data:
             exclusion_criteria = trial_data['exclusion_criteria']
 
@@ -60,15 +58,15 @@ class Trial:
                 coding = crit['coding'] if 'coding' in crit else None
                 unit = crit['unit'] if 'unit' in crit else None
 
-                self.__exclusion_criteria.append(Criteria(rule_id, crit_type,identifier, field, operator,
+                self.exclusion_criteria.append(Criteria(rule_id, crit_type,identifier, field, operator,
                             value, raw_text, description, confidence, coding_system,coding, unit))
 
-        self.__parsing_confidence:float = trial_data['parsing_confidence'] if 'parsing_confidence' in trial_data else 0
-        self.__total_rules_extracted:int = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else 0
-        self.__model_used:str = trial_data['model_used'] if 'model_used' in trial_data else ""
-        self.__meet_percentage:float = 100
+        self.parsing_confidence = trial_data['parsing_confidence'] if 'parsing_confidence' in trial_data else None
+        self.total_rules_extracted = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else None
+        self.model_used = trial_data['model_used'] if 'model_used' in trial_data else None
+        self.meet_percentage = 100
 
-        self.__reasoning_steps = []
+        self.reasoning_steps = []
         if 'reasoning_steps' in trial_data:
             reasoning_steps = trial_data['reasoning_steps']
 
@@ -76,60 +74,28 @@ class Trial:
                 step = int(reason['step'])
                 description = reason['description']
                 confidence = float(reason['confidence'])
-                self.__reasoning_steps.append(ReasoningStep(step, description, confidence))
-
-    @property
-    def nct_id(self) -> str:
-        return self.__nct_id
-
-    @property
-    def parsing_timestamp(self) -> str:
-        return self.__parsing_timestamp
-
-    @property
-    def inclusion_criteria(self) -> list:
-        return self.__inclusion_criteria
-
-    @property
-    def exclusion_criteria(self) -> list:
-        return self.__exclusion_criteria
-
-    @property
-    def total_rules_extracted(self) -> int:
-        return self.__total_rules_extracted
-
-    @property
-    def model_used(self) -> str:
-        return self.__model_used
-
-    @property
-    def meet_percentage(self) -> float:
-        return self.__meet_percentage
-
-    @property
-    def reasoning_steps(self) -> list:
-        return self.__reasoning_steps
+                self.reasoning_steps.append(ReasoningStep(step, description, confidence))
 
     def get_total_weight(self) -> float:
         total = 0
-        for inclusion in self.__inclusion_criteria:
+        for inclusion in self.inclusion_criteria:
             total += inclusion.weight
         return total
 
     def get_heading(self) -> str:
-        heading = f'Finding Matches ({self.__meet_percentage:.2f}%):\n'
+        heading = f'Finding Matches ({self.meet_percentage:.2f}%):\n'
         heading+= f'{"patient id":<15}|{"percentage":<12}|{"total score":<12}'
-        for crit in self.__inclusion_criteria:
+        for crit in self.inclusion_criteria:
             if crit.is_active():
                 heading+=f'|{crit.get_raw_text()+" ("+str(crit.get_weight())+")":<20}'
         heading+="|"
         return heading
 
     def set_meet_percentage(self, meet_percentage) -> None:
-        self.__meet_percentage = meet_percentage
+        self.meet_percentage = meet_percentage
 
-    def __str__(self) -> str:
-        text = "Trial ID: " + str(self.__nct_id)
+    def str(self) -> str:
+        text = "Trial ID: " + self.nct_id
         return text
 
     def evaluate(self, patients) -> str:
@@ -145,7 +111,7 @@ class Trial:
             #print("Processing:" + patient_id)
 
             exclude = False
-            for exclusion in self.__exclusion_criteria:
+            for exclusion in self.exclusion_criteria:
                 #print("Exclusion:", exclusion, exclusion.active, exclusion.meets(patient)[0])
                 if exclusion.active and exclusion.meets(patient)[0]:
                     #print("\tExcluded due to :" + str(exclusion))
@@ -161,7 +127,7 @@ class Trial:
             category_results = []
             total = 0
 
-            for inclusion in self.__inclusion_criteria:
+            for inclusion in self.inclusion_criteria:
                 if inclusion.active:
                     results = inclusion.meets(patient)
 
@@ -192,7 +158,7 @@ class Trial:
             if total == self.get_total_weight():
                 perfect_match_count += 1
 
-            if percentage >= self.__meet_percentage:
+            if percentage >= self.meet_percentage:
                 # print("Added")
                 total_patients_matches_found += 1
                 matches.append(ScoredPatient(patient_id, percentage, total, category_results))
