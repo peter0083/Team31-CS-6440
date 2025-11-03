@@ -1,8 +1,8 @@
 from typing import LiteralString
 
-from criteria import Criteria
-from reasoning_step import ReasoningStep
-from scored_patient import ScoredPatient
+from src.ms4.criteria import Criteria
+from src.ms4.reasoning_step import ReasoningStep
+from src.ms4.scored_patient import ScoredPatient
 
 
 class Trial:
@@ -22,13 +22,13 @@ class Trial:
                 operator = crit["operator"]
                 value = crit["value"]
                 raw_text = crit["raw_text"]
-                description = crit["description"] if "description" in crit else None
-                confidence = crit["confidence"] if "confidence" in crit else None
+                description = crit["description"] if "description" in crit else ""
+                confidence = crit["confidence"] if "confidence" in crit else 0.0
                 coding_system = (
-                    crit["coding_system"] if "coding_system" in crit else None
+                    crit["coding_system"] if "coding_system" in crit else ""
                 )
-                coding = crit["coding"] if "coding" in crit else None
-                unit = crit["unit"] if "unit" in crit else None
+                coding = crit["coding"] if "coding" in crit else ""
+                unit = crit["unit"] if "unit" in crit else ""
                 '''self,crit_rule_id:str, +
                 crit_type:str, +
                 crit_identifier: list[str], +
@@ -70,13 +70,13 @@ class Trial:
                 operator = crit["operator"]
                 raw_text = crit["raw_text"]
                 values = crit["value"]
-                description = crit["description"] if "description" in crit else None
-                confidence = crit["confidence"] if "confidence" in crit else None
+                description = crit["description"] if "description" in crit else ""
+                confidence = crit["confidence"] if "confidence" in crit else 0.0
                 coding_system = (
-                    crit["coding_system"] if "coding_system" in crit else None
+                    crit["coding_system"] if "coding_system" in crit else ""
                 )
-                coding = crit["coding"] if "coding" in crit else None
-                unit = crit["unit"] if "unit" in crit else None
+                coding = crit["coding"] if "coding" in crit else ""
+                unit = crit["unit"] if "unit" in crit else ""
 
                 self.exclusion_criteria.append(
                     Criteria(
@@ -132,8 +132,8 @@ class Trial:
         heading = f"Finding Matches ({self.meet_percentage:.2f}%):\n"
         heading += f'{"patient id":<15}|{"percentage":<12}|{"total score":<12}'
         for crit in self.inclusion_criteria:
-            if crit.is_active():
-                heading += f'|{crit.get_raw_text()+" ("+str(crit.get_weight())+")":<20}'
+            if crit.active:
+                heading += f'|{crit.raw_text+" ("+str(crit.weight)+")":<20}'
         heading += "|"
         return heading
 
@@ -144,12 +144,12 @@ class Trial:
         text = "Trial ID: " + str(self.nct_id)
         return text
 
-    def evaluate(self, patients: dict) -> LiteralString:
+    def evaluate(self, patients: list) -> LiteralString:
         matches: list[ScoredPatient] = []
         total_patients_evaluated = 0
         total_patients_matches_found = 0
         exclusion_count = 0
-        total_match_score = 0
+        total_match_score = 0.0
         perfect_match_count = 0
         for patient in patients:
             total_patients_evaluated += 1
@@ -171,7 +171,7 @@ class Trial:
             # print("\tNot Excluded ")
 
             category_results = []
-            total = 0
+            total = 0.0
 
             for inclusion in self.inclusion_criteria:
                 if inclusion.active:
@@ -186,7 +186,7 @@ class Trial:
                             inclusion.description,
                             inclusion.raw_text,
                             results[1],
-                            inclusion.weight,
+                            float(inclusion.weight),
                             results[0],
                         )
                     )

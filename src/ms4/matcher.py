@@ -1,6 +1,6 @@
 import time
 
-from trial import Trial
+from src.ms4.trial import Trial
 
 sample_trial_data = {
     "nct_id": "NCT05123456",
