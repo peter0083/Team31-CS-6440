@@ -1,12 +1,13 @@
 from criteria import Criteria
 from reasoning_step import ReasoningStep
 from scored_patient import ScoredPatient
+from typing import Union
 
 
 class Trial:
-    def __init__(self,trial_data)->None:
-        self.__nct_id = trial_data['nct_id']
-        self.__parsing_timestamp = trial_data['parsing_timestamp']
+    def __init__(self,trial_data):
+        self.__nct_id:str = trial_data['nct_id']
+        self.__parsing_timestamp:str = trial_data['parsing_timestamp']
 
         self.__inclusion_criteria = []
 
@@ -63,8 +64,8 @@ class Trial:
                             value, raw_text, description, confidence, coding_system,coding, unit))
 
         self.__parsing_confidence = trial_data['parsing_confidence'] if 'parsing_confidence' in trial_data else None
-        self.__total_rules_extracted = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else None
-        self.__model_used = trial_data['model_used'] if 'model_used' in trial_data else None
+        self.__total_rules_extracted:int = trial_data['total_rules_extracted'] if 'total_rules_extracted' in trial_data else None
+        self.__model_used:str = trial_data['model_used'] if 'model_used' in trial_data else ""
         self.__meet_percentage = 100
 
         self.__reasoning_steps = []
@@ -128,7 +129,7 @@ class Trial:
         self.__meet_percentage = meet_percentage
 
     def __str__(self) -> str:
-        text = "Trial ID: " + self.__nct_id
+        text = "Trial ID: " + str(self.__nct_id)
         return text
 
     def evaluate(self, patients) -> str:
