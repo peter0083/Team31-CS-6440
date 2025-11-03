@@ -1,7 +1,7 @@
 from criteria import Criteria
 from reasoning_step import ReasoningStep
 from scored_patient import ScoredPatient
-
+from typing import LiteralString
 
 class Trial:
     def __init__(self,trial_data: dict)->None:
@@ -98,7 +98,7 @@ class Trial:
         text = "Trial ID: " + str(self.nct_id)
         return text
 
-    def evaluate(self, patients:dict) -> str:
+    def evaluate(self, patients:dict) -> LiteralString:
         matches:list[ScoredPatient] = []
         total_patients_evaluated = 0
         total_patients_matches_found=0
