@@ -108,7 +108,7 @@ class Trial:
         self.model_used = (
             trial_data["model_used"] if "model_used" in trial_data else None
         )
-        self.meet_percentage = 100
+        self.meet_percentage = 100.0
 
         self.reasoning_steps = []
         if "reasoning_steps" in trial_data:
