@@ -4,7 +4,7 @@ from scored_patient import ScoredPatient
 
 
 class Trial:
-    def __init__(self,trial_data: str)->None:
+    def __init__(self,trial_data: dict)->None:
         self.nct_id = trial_data['nct_id']
         self.parsing_timestamp = trial_data['parsing_timestamp']
         self.inclusion_criteria = []
