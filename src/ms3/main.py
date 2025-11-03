@@ -3,12 +3,11 @@ from __future__ import annotations
 import glob
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
-
 from schemas import Condition as ConditionItem  # type: ignore
 from schemas import DataCompleteness, Demographics, LabResult, Medication, Phenotype
 
@@ -105,7 +104,7 @@ def _get_duckdb() -> "duckdb.DuckDBPyConnection":
     return _duckdb_conn
 
 
-def _get_hive():
+def _get_hive() -> Any:
     """Return a Hive/Thrift connection (create if missing)."""
     global _hive_conn
     if not _HIVE_AVAILABLE:
@@ -123,44 +122,33 @@ def _get_hive():
 
 
 def q(sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
-    """
-    Run a SQL query against DuckDB or Hive and return a pandas DataFrame.
-    Named parameter style: use `:name` in SQL; we'll bind accordingly for DuckDB,
-    or perform a safe format for Hive (limited to strings/numbers).
-    """
     if USE_DUCKDB:
         con = _get_duckdb()
-        if params:
-            # DuckDB supports Python named parameters via 'execute' with a dict
-            res = con.execute(sql, params).fetch_df()
-        else:
-            res = con.execute(sql).fetch_df()
-        return res
+        # duckdb's .fetch_df() is untyped -> cast to DataFrame
+        df = con.execute(sql, params or {}).fetch_df()
+        return cast(pd.DataFrame, df)
 
-    # Hive path
     con = _get_hive()
     cur = con.cursor()
 
+    # bind/escape params for Hive if you’re not using parameterized queries
     bound_sql = sql
     if params:
-        # Minimal safe parameter binding for Hive (no server-side named params).
-        # Only substitute simple literals.
         def _escape(v: Any) -> str:
             if v is None:
                 return "NULL"
             if isinstance(v, (int, float)):
                 return str(v)
-            # naive string escape
-            s = str(v).replace("'", "''")
-            return f"'{s}'"
-
+            return "'" + str(v).replace("'", "''") + "'"
         for k, v in params.items():
             bound_sql = bound_sql.replace(f":{k}", _escape(v))
 
     cur.execute(bound_sql)
-    cols = [c[0] for c in cur.description] if cur.description else []
+    cols = [c[0] for c in (cur.description or [])]
     rows = cur.fetchall() if cur.description else []
-    return pd.DataFrame(rows, columns=cols)
+    df = pd.DataFrame(rows, columns=cols)
+    return cast(pd.DataFrame, df)
+
 
 
 # =========================================================
