@@ -98,7 +98,7 @@ class Trial:
         text = "Trial ID: " + str(self.nct_id)
         return text
 
-    def evaluate(self, patients:dict) -> dict:
+    def evaluate(self, patients:dict) -> str:
         matches:list[ScoredPatient] = []
         total_patients_evaluated = 0
         total_patients_matches_found=0
@@ -182,4 +182,4 @@ class Trial:
 
         json += (match_text[0:-2] if match_text else "") + "\n\t]\n}"
 
-        return json
+        return str(json)
