@@ -16,5 +16,6 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - types-requests
-          - pandas-stubs  
+        - types-requests
+        - types-jsonschema
+        - pandas-stubs
