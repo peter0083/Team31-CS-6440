@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import glob
 import os
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -8,7 +9,8 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
 
-import glob
+from schemas import Condition as ConditionItem  # type: ignore
+from schemas import DataCompleteness, Demographics, LabResult, Medication, Phenotype
 
 # --- Optional imports (loaded lazily) ---
 _DUCKDB_AVAILABLE = False
@@ -56,18 +58,6 @@ TBL_MEDREQ = os.getenv("TBL_MEDREQ", "medicationrequest")
 CORS_ALLOW_ORIGINS = [
     o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000").split(",") if o.strip()
 ]
-
-
-# === Pydantic models (from your schemas.py) ===
-# Expecting these names/fields to match the Draft contract exactly.
-from schemas import (  # type: ignore
-    Phenotype,
-    Demographics,
-    Condition as ConditionItem,
-    LabResult,
-    Medication,
-    DataCompleteness,
-)
 
 
 # =========================================================

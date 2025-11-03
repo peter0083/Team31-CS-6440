@@ -1,6 +1,8 @@
 # schemas.py
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+
 
 class Demographics(BaseModel):
     age: int = Field(..., example=45)
