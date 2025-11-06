@@ -1,0 +1,80 @@
+{
+  "nct_id": "NCT05123456",
+  "parsing_timestamp": "2025-10-25T16:39:23.923743",
+  "inclusion_criteria": [
+    {
+      "rule_id": "inc_001",
+      "type": "demographic",
+      "identifier": [
+        "age"
+      ],
+      "field": "age",
+      "operator": "between",
+      "value": [
+        18,
+        65
+      ],
+      "unit": "years",
+      "description": "Age between 18 and 65 years",
+      "raw_text": "Age 18-65 years",
+      "confidence": 1.0,
+      "code_system": null,
+      "code": null
+    },
+    {
+      "rule_id": "inc_002",
+      "type": "condition",
+      "identifier": [
+        "diagnosis",
+        "type_2_diabetes"
+      ],
+      "field": "diagnosis",
+      "operator": "=",
+      "value": "Type 2 diabetes",
+      "unit": null,
+      "description": "Diagnosed with Type 2 diabetes",
+      "raw_text": "Diagnosed Type 2 diabetes",
+      "confidence": 1.0,
+      "code_system": "ICD-10",
+      "code": "E11"
+    }
+  ],
+  "exclusion_criteria": [
+    {
+      "rule_id": "exc_001",
+      "type": "demographic",
+      "identifier": [
+        "pregnancy_status"
+      ],
+      "field": "pregnancy_status",
+      "operator": null,
+      "value": "Pregnant or breastfeeding",
+      "unit": null,
+      "description": "Pregnant or breastfeeding",
+      "raw_text": "Pregnant or breastfeeding",
+      "confidence": 1.0,
+      "code_system": null,
+      "code": null
+    }
+  ],
+  "parsing_confidence": 1.0,
+  "total_rules_extracted": 3,
+  "model_used": "gpt-4o",
+  "reasoning_steps": [
+    {
+      "step": 1,
+      "description": "Identify and parse the age criterion as a demographic rule with a range operator.",
+      "confidence": 1.0
+    },
+    {
+      "step": 2,
+      "description": "Identify and parse the Type 2 diabetes diagnosis as a condition rule with an ICD-10 code.",
+      "confidence": 1.0
+    },
+    {
+      "step": 3,
+      "description": "Identify and parse the pregnancy status as an exclusion demographic rule.",
+      "confidence": 1.0
+    }
+  ]
+}
