@@ -1,6 +1,7 @@
 import logging
 import time
 from datetime import datetime, timezone
+from typing import Any, Optional, Union
 
 import httpx
 import requests
@@ -48,7 +49,7 @@ HEADERS = {
 # ──────────────────────────────
 # Helper: Safe GET with retries
 # ──────────────────────────────
-def fetch_with_retries(url, params, retries=3, backoff=2):
+def fetch_with_retries(url: str, params: dict[str, Any], retries: int =3, backoff: int =2) -> Optional[requests.Response]:
     for attempt in range(retries):
         try:
             response = requests.get(url, params=params, timeout=15)
@@ -64,7 +65,7 @@ def fetch_with_retries(url, params, retries=3, backoff=2):
 # POST endpoint
 # ──────────────────────────────
 @app.post("/search-trials")
-async def search_trials(query: SearchQuery, request: Request):
+async def search_trials(query: SearchQuery, request: Request) -> Union[dict[str, Any], JSONResponse]:
     term = query.term.strip()
 
     # Basic validation
