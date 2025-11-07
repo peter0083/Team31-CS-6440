@@ -1,8 +1,8 @@
 from typing import LiteralString
 
-from src.ms4.criteria import Criteria
-from src.ms4.reasoning_step import ReasoningStep
-from src.ms4.scored_patient import ScoredPatient
+from criteria import Criteria
+from reasoning_step import ReasoningStep
+from scored_patient import ScoredPatient
 
 
 class Trial:

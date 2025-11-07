@@ -1,7 +1,12 @@
 import time
 
+from fastapi import FastAPI
+from pydantic import BaseModel
+
 from src.ms4.trial import Trial
 
+app = FastAPI()
+'''
 sample_trial_data = {
     "nct_id": "NCT05123456",
     "parsing_timestamp": "2025-10-09T18:00:00Z",
@@ -386,7 +391,6 @@ patients = [
     },
 ]
 
-
 def print_dots(count: int = 3, delay: float = 0.25, end: str = "\n") -> None:
     """Print `count` dots, pausing `delay` seconds between each."""
     for _ in range(count):
@@ -394,28 +398,18 @@ def print_dots(count: int = 3, delay: float = 0.25, end: str = "\n") -> None:
         time.sleep(delay)
     print(end, end="")
 
-
-def main() -> None:
+    def main() -> None:
     # print_dots(3, 0.25)
     trial_json = sample_trial_data
     trial = Trial(trial_json)
     trial.set_meet_percentage(45)
     json = trial.evaluate(patients)
     print(json)
-
-    """for m in matches:
-        patient_line = f'{m.get_patient_id():>15}|{m.get_percentage():>11.2f}%|{m.get_score():>12}'
-
-        for cat in m.get_categories():
-            #print(cat)
-            if cat[1]==0:
-                patient_line += f'|X{cat[2]:>19}'
-            else:
-                patient_line += f'|P{cat[2]:>19}'
-
-        print(patient_line+"|")
-"""
-
-
+    
 if __name__ == "__main__":
     main()
+'''
+
+
+
+
