@@ -14,7 +14,7 @@ class PatientsAndTrial(BaseModel):
 
 
 @app.post("/match")
-def evaluate_trial(payload: PatientsAndTrial) -> str:
+def evaluate_trial(payload: PatientsAndTrial) -> dict:
     try:
         patients = json.loads(payload.raw_patients)
     except json.JSONDecodeError as e:
