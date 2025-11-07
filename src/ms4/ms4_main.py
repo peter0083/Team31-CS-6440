@@ -2,7 +2,8 @@ import json
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from trial import Trial
+
+from src.ms4.trial import Trial
 
 app = FastAPI()
 
