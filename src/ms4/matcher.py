@@ -1,12 +1,7 @@
 import time
 
-from fastapi import FastAPI
-from pydantic import BaseModel
-
 from src.ms4.trial import Trial
 
-app = FastAPI()
-'''
 sample_trial_data = {
     "nct_id": "NCT05123456",
     "parsing_timestamp": "2025-10-09T18:00:00Z",

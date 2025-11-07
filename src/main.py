@@ -13,4 +13,4 @@ def get_app() -> FastAPI:
 
 @app.get("/")
 async def root() -> dict[str, str]:
-    return {"message": "Hello World"}
+    return {"message": "Hello World: /This is Clinical Trial Matcher Web App"}
