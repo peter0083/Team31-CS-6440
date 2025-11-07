@@ -2,7 +2,6 @@ import json
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
 from trial import Trial
 
 app = FastAPI()
