@@ -9,6 +9,7 @@ dist/
 *.egg-info/
 .venv/
 src/ms2/.env
+.env.ui
 
 # Poetry
 # poetry.lock # need to make it available for GitHub Actions for builds
