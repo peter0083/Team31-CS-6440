@@ -89,6 +89,7 @@ ui-docker-build:
         echo "LOG_LEVEL=info" >> src/ms2/.env
 
         # Create UI .env
+        mkdir -p src/ui
         echo "NODE_ENV=production" > src/ui/.env.ui
         echo "VITE_MS1_HEALTH_URL=http://localhost:8001/api/ms1/health" >> src/ui/.env.ui
         echo "VITE_MS2_HEALTH_URL=http://localhost:8002/api/ms2/health" >> src/ui/.env.ui
