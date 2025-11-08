@@ -3,8 +3,8 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy only the UI folder from src/ui
-COPY src/ui/ .
+# Copy source code
+COPY . .
 
 # Install dependencies
 RUN npm install
