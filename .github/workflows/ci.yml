@@ -28,7 +28,6 @@ jobs:
       - name: Create .env file for tests
         run: |
           mkdir -p src/ms2
-          mkdir -p src/ms4
           echo "OPENAI_API_KEY=dummy-key-for-tests" > src/ms2/.env
       
       - name: Build MS2 Docker image
@@ -94,6 +93,7 @@ jobs:
         if: always()
         run: |
           docker compose down -v
+
   # Original Python Test Job - KEPT for backwards compatibility
   test:
     name: Run Tests (Poetry)
