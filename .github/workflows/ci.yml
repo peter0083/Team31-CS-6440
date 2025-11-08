@@ -1,4 +1,3 @@
-
 name: CI
 
 on:
@@ -71,7 +70,6 @@ jobs:
         run: |
           docker compose down -v
 
-
   docker-test-ms4:
     name: Docker Build & Test
     runs-on: ubuntu-latest
@@ -83,7 +81,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-
       - name: Build MS4 Docker image
         run: |
           docker compose build ms4
@@ -92,7 +89,6 @@ jobs:
         if: failure()
         run: |
           docker compose logs ms4
-
 
       - name: Stop containers
         if: always()
@@ -104,7 +100,6 @@ jobs:
   test:
     name: Run Tests (Poetry)
     runs-on: ubuntu-latest
-
 
     steps:
       - name: Checkout code
@@ -203,7 +198,6 @@ jobs:
 
       github.event_name == 'pull_request' && 
       (github.base_ref == 'main' || github.base_ref == 'MS2')
-
 
     steps:
       - name: Checkout code
