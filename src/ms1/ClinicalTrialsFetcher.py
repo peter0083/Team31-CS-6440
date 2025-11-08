@@ -64,7 +64,8 @@ def fetch_with_retries(url: str, params: dict[str, Any], retries: int =3, backof
 # ──────────────────────────────
 # POST endpoint
 # ──────────────────────────────
-@app.post("/search-trials")
+@app.post("/search-trials", response_model=None)
+
 async def search_trials(query: SearchQuery, request: Request) -> Union[dict[str, Any], JSONResponse]:
     term = query.term.strip()
 
