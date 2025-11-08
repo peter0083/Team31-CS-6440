@@ -8,6 +8,7 @@ export default defineConfig({
     port: 5173,
     watch: {
       usePolling: true  // Enable hot-reload in Docker
-    }
+    },
+    allowedHosts: 'all'  // Allow all hosts (or use wildcard pattern)
   }
 })
