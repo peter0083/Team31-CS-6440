@@ -52,6 +52,23 @@ services:
       start_period: 40s
       retries: 3
 
+  ms4:
+    build:
+      context: .
+      dockerfile: Dockerfile.ms4
+    container_name: ms4_service
+    ports:
+      - "8004:8004"
+    environment:
+      - MS2_URL=http://host.docker.internal:8002
+      - MS3_URL=http://host.docker.internal:8003
+    volumes:
+      # Mount source code for development (comment out for production)
+      - ./src:/app/src
+      # Mount data directory for persistent storage
+      - ./data/ms4:/app/data/ms4
+    restart: unless-stopped
+
   # MS2 Test Runner - For running unit tests in Docker
   ms2-test:
     build:
