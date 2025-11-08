@@ -14,9 +14,13 @@ repos:
         - --profile=black
       files: \.py$
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.13.0
+  rev: v1.10.0
   hooks:
     - id: mypy
+      additional_dependencies:
+        - types-requests
+        - types-jsonschema
+        - pandas-stubs
       args:
         - --ignore-missing-imports
         - --allow-untyped-defs
