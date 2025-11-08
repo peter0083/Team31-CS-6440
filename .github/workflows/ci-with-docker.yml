@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - MS2  # Run on direct pushes to MS2
+      - MS4
   pull_request:
     branches:
       - main  # Run on PRs targeting main
       - MS2   # Run on PRs targeting MS2
+      - MS4
 
 jobs:
   # Docker Build & Test Job

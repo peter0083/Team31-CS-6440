@@ -49,7 +49,7 @@ RUN useradd -m -u 1000 ms4user && \
 USER ms4user
 
 # Expose port
-EXPOSE 8002
+EXPOSE 8004
 
 # Run the application
-CMD ["uvicorn", "src.ms4.ms4_main:app", "--host", "0.0.0.0", "--port", "8002"]
+CMD ["uvicorn", "src.ms4.ms4_main:app", "--host", "0.0.0.0", "--port", "8004"]
