@@ -67,49 +67,58 @@ jobs:
           docker compose down -v
 
   # UI Container Build & Test Job
-  ui-docker-build:
-    name: UI Container Build & Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+ui-docker-build:
+  name: UI Container Build & Test
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Create .env.ui for testing
-        run: |
-          echo "NODE_ENV=production" > src/ui/.env.ui
-          echo "VITE_MS1_HEALTH_URL=http://localhost:8001/api/ms1/health" >> src/ui/.env.ui
-          echo "VITE_MS2_HEALTH_URL=http://localhost:8002/api/ms2/health" >> src/ui/.env.ui
-          echo "VITE_MS3_HEALTH_URL=http://localhost:8003/api/ms3/health" >> src/ui/.env.ui
-          echo "VITE_MS4_HEALTH_URL=http://localhost:8004/api/ms4/health" >> src/ui/.env.ui
+    - name: Create environment files for testing
+      run: |
+        # Create MS2 .env (needed by docker-compose)
+        mkdir -p src/ms2
+        echo "OPENAI_API_KEY=dummy-key-for-tests" > src/ms2/.env
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ms2_db" >> src/ms2/.env
+        echo "REDIS_URL=redis://localhost:6379/0" >> src/ms2/.env
+        echo "MS1_URL=http://localhost:8001" >> src/ms2/.env
+        echo "ENVIRONMENT=test" >> src/ms2/.env
+        echo "LOG_LEVEL=info" >> src/ms2/.env
 
-      - name: Build UI Docker image
-        run: |
-          docker compose build ui
+        # Create UI .env
+        echo "NODE_ENV=production" > src/ui/.env.ui
+        echo "VITE_MS1_HEALTH_URL=http://localhost:8001/api/ms1/health" >> src/ui/.env.ui
+        echo "VITE_MS2_HEALTH_URL=http://localhost:8002/api/ms2/health" >> src/ui/.env.ui
+        echo "VITE_MS3_HEALTH_URL=http://localhost:8003/api/ms3/health" >> src/ui/.env.ui
+        echo "VITE_MS4_HEALTH_URL=http://localhost:8004/api/ms4/health" >> src/ui/.env.ui
 
-      - name: Test UI container starts successfully
-        run: |
-          docker compose up -d ui
-          sleep 5
-          docker compose logs ui
+    - name: Build UI Docker image
+      run: |
+        docker compose build ui
 
-      - name: Verify UI health check endpoint
-        run: |
-          # Give container time to fully start
-          sleep 5
-          docker compose ps ui
+    - name: Test UI container starts successfully
+      run: |
+        docker compose up -d ui
+        sleep 5
+        docker compose logs ui
 
-      - name: Show UI logs on failure
-        if: failure()
-        run: |
-          docker compose logs ui
+    - name: Verify UI health check endpoint
+      run: |
+        sleep 5
+        docker compose ps ui
 
-      - name: Stop containers
-        if: always()
-        run: |
-          docker compose down -v
+    - name: Show UI logs on failure
+      if: failure()
+      run: |
+        docker compose logs ui
+
+    - name: Stop containers
+      if: always()
+      run: |
+        docker compose down -v
 
   # Original Python Test Job - KEPT for backwards compatibility
   test:
