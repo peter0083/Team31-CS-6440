@@ -15,6 +15,7 @@ services:
       - ms2_network
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
+
       interval: 10s
       timeout: 5s
       retries: 5
@@ -68,7 +69,6 @@ services:
       # Mount data directory for persistent storage
       - ./data/ms4:/app/data/ms4
     restart: unless-stopped
-
   # MS2 Test Runner - For running unit tests in Docker
   ms2-test:
     build:

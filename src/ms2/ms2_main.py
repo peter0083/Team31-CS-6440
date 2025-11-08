@@ -12,7 +12,6 @@ import httpx
 # so mypy cannot verify its types. Skip type checking for this import.
 import instructor  # type: ignore[import-untyped]
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
 from sqlalchemy import select
 
@@ -369,21 +368,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # ✅ ADD THIS: Enable CORS for UI access
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],  # Allow all origins (can restrict to specific domains)
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
     # Include MS2 routes
     app.include_router(router, prefix="/api/ms2")
 
     return app
-
-
-
-# Create the FastAPI app instance independent of main.py
-app = create_app()
