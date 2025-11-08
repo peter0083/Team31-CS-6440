@@ -1,3 +1,4 @@
+---
 name: CI
 
 on:
@@ -5,12 +6,12 @@ on:
     branches:
       - main
       - deployment
-      - MS2 # Run on direct pushes to MS2
+      - MS2  # Run on direct pushes to MS2
   pull_request:
     branches:
-      - main # Run on PRs targeting main
+      - main  # Run on PRs targeting main
       - deployment
-      - MS2 # Run on PRs targeting MS2
+      - MS2  # Run on PRs targeting MS2
 
 jobs:
   # Docker Build & Test Job
@@ -43,11 +44,14 @@ jobs:
 
       - name: Wait for PostgreSQL to be ready
         run: |
-          timeout 60 bash -c 'until docker compose exec -T postgres pg_isready -U postgres; do sleep 2; done'
+          timeout 60 bash -c \
+            'until docker compose exec -T postgres pg_isready -U \
+            postgres; do sleep 2; done'
 
       - name: Run Docker tests
         run: |
-          docker compose run --rm ms2-test pytest tests/ms2/test_ms2.py -v --junitxml=test-results.xml
+          docker compose run --rm ms2-test pytest \
+            tests/ms2/test_ms2.py -v --junitxml=test-results.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -69,65 +73,70 @@ jobs:
           docker compose down -v
 
   # UI Container Build & Test Job
-ui-docker-build:
-  name: UI Container Build & Test
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+  ui-docker-build:
+    name: UI Container Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Create environment files for testing
-      run: |
-        # Create MS2 .env
-        mkdir -p src/ms2
-        echo "OPENAI_API_KEY=dummy-key-for-tests" > src/ms2/.env
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ms2_db" >> src/ms2/.env
-        echo "REDIS_URL=redis://localhost:6379/0" >> src/ms2/.env
-        echo "MS1_URL=http://localhost:8001" >> src/ms2/.env
-        echo "ENVIRONMENT=test" >> src/ms2/.env
-        echo "LOG_LEVEL=info" >> src/ms2/.env
+      - name: Create environment files for testing
+        run: |
+          # Create MS2 .env
+          mkdir -p src/ms2
+          echo "OPENAI_API_KEY=dummy-key-for-tests" > src/ms2/.env
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:\
+5432/ms2_db" >> src/ms2/.env
+          echo "REDIS_URL=redis://localhost:6379/0" >> src/ms2/.env
+          echo "MS1_URL=http://localhost:8001" >> src/ms2/.env
+          echo "ENVIRONMENT=test" >> src/ms2/.env
+          echo "LOG_LEVEL=info" >> src/ms2/.env
 
-        # Create UI .env (MUST create directory first!)
-        mkdir -p src/ui
-        echo "NODE_ENV=production" > src/ui/.env.ui
-        echo "VITE_MS1_HEALTH_URL=http://localhost:8001/api/ms1/health" >> src/ui/.env.ui
-        echo "VITE_MS2_HEALTH_URL=http://localhost:8002/api/ms2/health" >> src/ui/.env.ui
-        echo "VITE_MS3_HEALTH_URL=http://localhost:8003/api/ms3/health" >> src/ui/.env.ui
-        echo "VITE_MS4_HEALTH_URL=http://localhost:8004/api/ms4/health" >> src/ui/.env.ui
+          # Create UI .env (MUST create directory first!)
+          mkdir -p src/ui
+          echo "NODE_ENV=production" > src/ui/.env.ui
+          echo "VITE_MS1_HEALTH_URL=http://localhost:8001/api/ms1/\
+health" >> src/ui/.env.ui
+          echo "VITE_MS2_HEALTH_URL=http://localhost:8002/api/ms2/\
+health" >> src/ui/.env.ui
+          echo "VITE_MS3_HEALTH_URL=http://localhost:8003/api/ms3/\
+health" >> src/ui/.env.ui
+          echo "VITE_MS4_HEALTH_URL=http://localhost:8004/api/ms4/\
+health" >> src/ui/.env.ui
 
-    - name: Build UI Docker image
-      run: |
-        docker compose build ui
+      - name: Build UI Docker image
+        run: |
+          docker compose build ui
 
-    - name: Test UI container starts successfully
-      run: |
-        docker compose up -d ui
-        sleep 5
-        docker compose logs ui
+      - name: Test UI container starts successfully
+        run: |
+          docker compose up -d ui
+          sleep 5
+          docker compose logs ui
 
-    - name: Verify UI container is running
-      run: |
-        sleep 5
-        docker compose ps ui
+      - name: Verify UI container is running
+        run: |
+          sleep 5
+          docker compose ps ui
 
-    - name: Show UI logs on failure
-      if: failure()
-      run: |
-        docker compose logs ui || true
+      - name: Show UI logs on failure
+        if: failure()
+        run: |
+          docker compose logs ui || true
 
-    - name: Stop containers
-      if: always()
-      run: |
-        # First verify .env files exist
-        ls -la src/ui/.env.ui || true
-        ls -la src/ms2/.env || true
-        # Then stop
-        docker compose down || true
+      - name: Stop containers
+        if: always()
+        run: |
+          # First verify .env files exist
+          ls -la src/ui/.env.ui || true
+          ls -la src/ms2/.env || true
+          # Then stop
+          docker compose down || true
 
-  # Original Python Test Job - KEPT for backwards compatibility
+  # Original Python Test Job - for backwards compatibility
   test:
     name: Run Tests (Poetry)
     runs-on: ubuntu-latest
@@ -158,13 +167,13 @@ ui-docker-build:
 
       - name: Run all unit tests
         env:
-          OPENAI_API_KEY: 'dummy-key-for-tests' # Mocked tests don't use this
+          OPENAI_API_KEY: dummy-key-for-tests
         run: |
           poetry run pytest tests/ -v
 
       - name: Run MS2-specific tests
         env:
-          OPENAI_API_KEY: 'dummy-key-for-tests'
+          OPENAI_API_KEY: dummy-key-for-tests
         run: |
           poetry run pytest tests/ms2/test_ms2.py -v
 
@@ -202,7 +211,7 @@ ui-docker-build:
 
       - name: Run mypy type checking
         env:
-          OPENAI_API_KEY: 'dummy-key-for-mypy'
+          OPENAI_API_KEY: dummy-key-for-mypy
         run: |
           poetry run mypy .
 
@@ -237,7 +246,7 @@ ui-docker-build:
 
       - name: Run MS2 unit tests with coverage
         env:
-          OPENAI_API_KEY: 'dummy-key-for-tests'
+          OPENAI_API_KEY: dummy-key-for-tests
         run: |
           poetry run pytest tests/ms2/test_ms2.py -v
 

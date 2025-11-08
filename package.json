@@ -43,7 +43,7 @@
       "ruff check",
       "isort"
     ],
-    "*.{md,json,yaml,yml}": [
+    "*.{md,json}": [
       "prettier --write"
     ]
   }
