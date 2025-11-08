@@ -1,4 +1,4 @@
-# Multi-stage build for MS2 microservice
+# Multi-stage build for MS4 microservice
 FROM python:3.11-slim as builder
 
 # Set working directory
