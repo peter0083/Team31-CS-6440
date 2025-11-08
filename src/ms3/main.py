@@ -150,7 +150,6 @@ def q(sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
     return cast(pd.DataFrame, df)
 
 
-
 # =========================================================
 # App
 # =========================================================
