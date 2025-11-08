@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import HealthStatus from "./components/HealthStatus";
 
 function App() {
   const [term, setTerm] = useState("");
@@ -6,8 +7,12 @@ function App() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Use environment variables for API endpoints with fallback to localhost
+  const API_SEARCH_URL = import.meta.env.VITE_API_SEARCH_URL || "http://localhost:8000/search-trials";
+  const API_DISPLAY_URL = import.meta.env.VITE_API_DISPLAY_URL || "http://localhost:8002/display";
+
   const handleSearch = async () => {
-    if (!/^[a-zA-Z0-9\s]+$/.test(term)) {
+    if (!/^[a-zA-Z0-9\\s]+$/.test(term)) {
       setError("❌ Please enter only letters and numbers.");
       setResults(null);
       return;
@@ -18,137 +23,193 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/search-trials", {
+      const res = await fetch(API_SEARCH_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ term }),
       });
+
       const data = await res.json();
 
       if (data.message && data.message.includes("No results")) {
         setError(data.message);
         setResults(null);
       } else {
-        const recv = await fetch("http://127.0.0.1:8002/display");
+        const recv = await fetch(API_DISPLAY_URL);
         const recvData = await recv.json();
         setResults(recvData);
       }
     } catch (err) {
       setError("⚠️ Error fetching data. Please try again.");
+      console.error("API Error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: "40px", fontFamily: "Arial, sans-serif" }}>
-      {/* ─────────────── Banner ─────────────── */}
-      <header
-        style={{
-          backgroundColor: "#004080",
-          color: "white",
-          padding: "15px",
-          textAlign: "center",
-          fontSize: "1.8em",
-          borderRadius: "8px",
-          marginBottom: "25px",
-        }}
-      >
-        Clinical Trial Matcher: Patient-to-Study Eligibility Assistant
+    <div
+      style={{
+        fontFamily: "Arial, sans-serif",
+        background: "linear-gradient(to bottom, #f8f9fa, #e9ecef)",
+        minHeight: "100vh",
+        padding: "20px",
+      }}
+    >
+      {/* Health Status Component - Fixed in top right */}
+      <HealthStatus />
+
+      {/* ─────────────── Header ─────────────── */}
+      <header style={{ textAlign: "center", marginBottom: "30px" }}>
+        <h1 style={{ color: "#333", margin: 0 }}>🔎 Clinical Trial Search</h1>
+        <p style={{ color: "#666", fontSize: "14px" }}>
+          Find active clinical trials by entering a search term below.
+        </p>
       </header>
 
-      {/* ─────────────── Search Bar ─────────────── */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+      {/* ─────────────── Search Box ─────────────── */}
+      <div
+        style={{
+          maxWidth: "600px",
+          margin: "0 auto 30px",
+          background: "white",
+          padding: "20px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
         <input
           type="text"
+          placeholder="Enter search term (e.g., diabetes, cancer)"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Enter a medical condition or keyword"
+          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
           style={{
-            width: "400px",
-            padding: "10px",
-            border: "1px solid #ccc",
-            borderRadius: "6px",
-            fontSize: "1em",
+            width: "100%",
+            padding: "12px",
+            fontSize: "16px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            marginBottom: "10px",
+            boxSizing: "border-box",
           }}
-          disabled={loading}
         />
         <button
           onClick={handleSearch}
           disabled={loading}
           style={{
-            backgroundColor: loading ? "#6c757d" : "#004080",
+            width: "100%",
+            padding: "12px",
+            fontSize: "16px",
+            backgroundColor: loading ? "#ccc" : "#007bff",
             color: "white",
             border: "none",
-            padding: "10px 16px",
-            borderRadius: "6px",
+            borderRadius: "4px",
             cursor: loading ? "not-allowed" : "pointer",
+            fontWeight: "bold",
           }}
         >
-          {loading ? "Searching..." : "Search"}
+          {loading ? "Searching..." : "Search Trials"}
         </button>
       </div>
 
-      {/* ─────────────── Error ─────────────── */}
+      {/* ─────────────── Error Message ─────────────── */}
       {error && (
-        <p style={{ color: "red", marginTop: "10px", fontWeight: "bold" }}>{error}</p>
+        <div
+          style={{
+            maxWidth: "600px",
+            margin: "0 auto 20px",
+            padding: "15px",
+            background: "#f8d7da",
+            color: "#721c24",
+            border: "1px solid #f5c6cb",
+            borderRadius: "4px",
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </div>
       )}
 
       {/* ─────────────── Loading Spinner ─────────────── */}
       {loading && (
-        <div style={{ marginTop: "20px", textAlign: "center" }}>
+        <div style={{ textAlign: "center", fontSize: "18px", color: "#666" }}>
           <div
             style={{
               display: "inline-block",
-              width: "60px",
-              height: "60px",
-              border: "6px solid #f3f3f3",
-              borderTop: "6px solid #004080",
+              width: "40px",
+              height: "40px",
+              border: "4px solid #f3f3f3",
+              borderTop: "4px solid #007bff",
               borderRadius: "50%",
               animation: "spin 1s linear infinite",
             }}
           />
-          <p style={{ marginTop: "10px" }}>Fetching studies...</p>
+          <p>Fetching studies...</p>
         </div>
       )}
 
-      {/* ─────────────── Results ─────────────── */}
-      <div style={{ marginTop: "20px" }}>
-        {results && Array.isArray(results) && results.length > 0 && !loading ? (
-          <ul style={{ listStyleType: "none", padding: 0 }}>
-            {results.map((study, idx) => (
-              <li
-                key={idx}
-                style={{
-                  marginBottom: "12px",
-                  padding: "10px",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  backgroundColor: "#f8f9fa",
-                }}
-              >
-                <strong>{study.title}</strong>
-                <p style={{ margin: "8px 0" }}>
-                  <b>Status:</b> {study.recruitment_status || "N/A"} <br />
-                  <b>Location:</b> {study.location || "N/A"} <br />
-                  <b>Phase:</b> {study.phase?.join(", ") || "N/A"} <br />
-                  <b>Lead Sponsor:</b> {study.sponsor || "N/A"}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          !error && !loading && <p>Enter a term above to find active trials.</p>
-        )}
-      </div>
+      {/* ─────────────── Results Display ─────────────── */}
+      {results && results.studies && (
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <h2 style={{ textAlign: "center", color: "#333" }}>
+            Found {results.studies.length} Clinical Trial(s)
+          </h2>
+          {results.studies.map((study, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: "white",
+                padding: "20px",
+                marginBottom: "20px",
+                borderRadius: "8px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <h3 style={{ marginTop: 0, color: "#007bff" }}>
+                {study.title || "Untitled Study"}
+              </h3>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                <strong>NCT ID:</strong> {study.nct_id || "N/A"}
+              </p>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                <strong>Status:</strong> {study.recruitment_status || "N/A"}
+              </p>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                <strong>Location:</strong> {study.location || "N/A"}
+              </p>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                <strong>Phase:</strong> {study.phase?.join(", ") || "N/A"}
+              </p>
+              <p style={{ fontSize: "14px", color: "#555" }}>
+                <strong>Lead Sponsor:</strong> {study.sponsor || "N/A"}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {/* ─────────────── Spinner Animation CSS ─────────────── */}
+      {/* ─────────────── Empty State ─────────────── */}
+      {!results && !loading && !error && (
+        <div
+          style={{
+            textAlign: "center",
+            color: "#999",
+            fontSize: "16px",
+            marginTop: "50px",
+          }}
+        >
+          <p>Enter a term above to find active trials.</p>
+        </div>
+      )}
+
+      {/* ─────────────── CSS Animation ─────────────── */}
       <style>
         {`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
         `}
       </style>
     </div>

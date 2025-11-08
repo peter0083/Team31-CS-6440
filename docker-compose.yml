@@ -8,13 +8,13 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ms2_db
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - ms2_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -26,9 +26,9 @@ services:
       dockerfile: Dockerfile.ms2
     container_name: ms2_service
     ports:
-      - "8002:8002"
+      - '8002:8002'
     env_file:
-      - src/ms2/.env  # Use .env file in src/ms2/
+      - src/ms2/.env # Use .env file in src/ms2/
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
       - MS1_URL=http://host.docker.internal:8001
@@ -46,7 +46,7 @@ services:
       - ./data/ms2:/app/data/ms2
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8002/api/ms2/health || exit 1"]
+      test: ['CMD-SHELL', 'curl -f http://localhost:8002/api/ms2/health || exit 1']
       interval: 30s
       timeout: 10s
       start_period: 40s
@@ -76,21 +76,53 @@ services:
       - ms2_network
 
   # Redis (for caching - optional)
-  redis:
-    image: redis:7-alpine
-    container_name: ms2_redis
+  #  redis:
+  #    image: redis:7-alpine
+  #    container_name: ms2_redis
+  #    ports:
+  #      - "6379:6379"
+  #    networks:
+  #      - ms2_network
+  #    volumes:
+  #      - redis_data:/data
+  #    healthcheck:
+  #      test: ["CMD", "redis-cli", "ping"]
+  #      interval: 10s
+  #      timeout: 5s
+  #      retries: 5
+  #    restart: unless-stopped
+
+  # React Vite UI - Frontend Application
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: ui_service
     ports:
-      - "6379:6379"
+      - '5173:5173'
+    env_file:
+      - src/ui/.env.ui # UI-specific environment variables
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - ms2
     networks:
       - ms2_network
     volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      # Mount only directories, not individual files
+      - ./src:/app/src
+      - ./public:/app/public
+      # Prevent node_modules from being overwritten
+      - /app/node_modules
+    stdin_open: true
+    tty: true
     restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:5173 || exit 1']
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
 
 volumes:
   postgres_data:
