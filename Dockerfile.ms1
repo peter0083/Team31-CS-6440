@@ -1,0 +1,23 @@
+# src/ms1/Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN pip install --no-cache-dir fastapi uvicorn[standard] requests httpx pydantic
+
+# Copy the FastAPI app into the container
+COPY src/ms1/ClinicalTrialsFetcher.py /app/
+
+# Expose the correct port
+EXPOSE 8001
+
+# Optional (helps with imports if more files are added later)
+ENV PYTHONPATH=/app
+
+# Start FastAPI app
+CMD ["uvicorn", "ClinicalTrialsFetcher:app", "--host", "0.0.0.0", "--port", "8001"]
