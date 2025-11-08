@@ -1,0 +1,55 @@
+# Multi-stage build for MS4 microservice
+FROM python:3.11-slim as builder
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry==1.7.1
+
+# Copy dependency files
+COPY pyproject.toml poetry.lock ./
+
+# Configure poetry to not create a virtual environment
+RUN poetry config virtualenvs.create false
+
+# Install dependencies
+RUN poetry install --no-root --only main --no-interaction --no-ansi
+
+# Final stage
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code
+COPY src/ ./src/
+
+# Create non-root user
+RUN useradd -m -u 1000 ms4user && \
+    chown -R ms4user:ms4user /app
+
+# Switch to non-root user
+USER ms4user
+
+# Expose port
+EXPOSE 8004
+
+# Run the application
+CMD ["uvicorn", "src.ms4.ms4_main:app", "--host", "0.0.0.0", "--port", "8004"]

@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "This project provides a single `setup.sh` script to automate the development environment installation and configuration. It installs and configures the following dependencies:",
   "main": "index.js",
+  "type": "module",
   "directories": {
     "test": "tests"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
@@ -17,14 +21,34 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
+    "eslint": "^9.39.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "husky": "^8.0.3",
+    "lint-staged": "^16.2.6",
+    "prettier": "^3.6.2",
+    "vite": "^5.0.0"
+  },
+  "lint-staged": {
+    "*.py": [
+      "ruff check",
+      "isort"
+    ],
+    "*.{md,json}": [
+      "prettier --write"
+    ]
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2"
   }

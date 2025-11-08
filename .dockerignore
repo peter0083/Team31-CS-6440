@@ -87,10 +87,25 @@ setup.sh
 .dockerignore
 docker-compose.override.yml
 
-pycache/
-*.pyc
-*.pyo
-*.pyd
-.env
-.git
-.DS_Store
+# React/Vite build outputs
+dist/
+dist-ssr/
+*.local
+
+# Vite cache
+.vite/
+.cache/
+
+# Additional Node.js logs (expanded)
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Editor directories and files (expanded)
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
