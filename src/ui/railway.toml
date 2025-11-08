@@ -1,6 +1,0 @@
-[build]
-builder = "dockerfile"
-dockerfilePath = "../../Dockerfile.ui"
-
-[deploy]
-port = 3000
