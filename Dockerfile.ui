@@ -1,0 +1,16 @@
+# Development Dockerfile for React Vite UI
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Install dependencies
+RUN npm install
+
+# Expose Vite's default port
+EXPOSE 5173
+
+# Start development server with host binding
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

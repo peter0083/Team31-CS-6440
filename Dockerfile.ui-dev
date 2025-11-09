@@ -1,0 +1,18 @@
+# Local Development Dockerfile for React Vite UI
+# This version runs the dev server for live reloading
+
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy source code
+COPY . .
+
+# Install dependencies
+RUN npm install
+
+# Expose Vite's default port
+EXPOSE 5173
+
+# Start development server with host binding
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

@@ -1,4 +1,4 @@
-# Multi-stage build for MS2 microservice
+# Multi-stage build for MS4 microservice
 FROM python:3.11-slim as builder
 
 # Set working directory
@@ -41,23 +41,15 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY src/ ./src/
 
-# Copy CSV mock data (ADDED THIS)
-COPY data/ms2/parsed_eligibility_criteria.csv ./
+# Create non-root user
+RUN useradd -m -u 1000 ms4user && \
+    chown -R ms4user:ms4user /app
 
-# Create data directory for outputs
-RUN mkdir -p /app/data/ms2
-
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
-ENV LOG_LEVEL=info
+# Switch to non-root user
+USER ms4user
 
 # Expose port
-EXPOSE 8002
+EXPOSE 8004
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8002/api/ms2/health || exit 1
-
-# Start application
-CMD ["python", "-m", "uvicorn", "src.ms2.ms2_main:app", "--host", "0.0.0.0", "--port", "8002"]
+# Run the application
+CMD ["uvicorn", "src.ms4.ms4_main:app", "--host", "0.0.0.0", "--port", "8004"]

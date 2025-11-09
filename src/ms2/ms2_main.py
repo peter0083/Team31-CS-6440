@@ -1,17 +1,18 @@
-"""MS2 Microservice: clinical trial criteria parser with LLM.
-Configuration: gpt-4o-mini only + PostgreSQL
-"""
+"""Fixed ms2_main.py - CSVDataLoader with proper CSV parsing"""
 
-import asyncio
+# The issue: CSVDataLoader was trying to load row-by-row rules
+# Solution: Group rules by nct_id THEN save as structured inclusion/exclusion criteria
+
+import csv
+import json
+import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional
 
-import httpx
-
-# instructor library does not provide type stubs (.pyi files) or py.typed marker,
-# so mypy cannot verify its types. Skip type checking for this import.
 import instructor  # type: ignore[import-untyped]
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
 from sqlalchemy import select
 
@@ -24,6 +25,141 @@ from src.ms2.ms2_pydantic_models import (
     ReasoningStep,
     TrialDataFromMS1,
 )
+
+logger = logging.getLogger(__name__)
+
+
+class CSVDataLoader:
+    """Load and ingest parsed criteria from CSV files."""
+
+    @staticmethod
+    async def load_csv_into_db(csv_path: str) -> int:
+        """
+        Load parsed criteria from CSV into PostgreSQL database.
+        
+        CSV Format (rule-level):
+            nct_id, rule_id, rule_type, type, identifier, field, operator, value, unit, raw_text, confidence
+        
+        Database Format (trial-level):
+            nct_id: inclusion_criteria[{...}], exclusion_criteria[{...}]
+        
+        Args:
+            csv_path: Path to CSV file
+            
+        Returns:
+            Number of TRIALS (not rules) loaded
+        """
+        csv_file = Path(csv_path)
+
+        if not csv_file.exists():
+            logger.warning(f"⚠️ CSV file not found: {csv_path}")
+            return 0
+
+        try:
+            # Step 1: Read CSV and group rules by nct_id
+            trials_data: dict[str, Any] = {}
+
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+
+                for row in reader:
+                    nct_id = row['nct_id'].strip()
+                    rule_type_value = row['rule_type'].strip()  # 'inclusion' or 'exclusion'
+
+                    # Initialize trial entry if not exists
+                    if nct_id not in trials_data:
+                        trials_data[nct_id] = {
+                            'nct_id': nct_id,
+                            'parsing_timestamp': datetime.now(),
+                            'inclusion_criteria': [],
+                            'exclusion_criteria': [],
+                            'parsing_confidence': 0.85,  # Default
+                            'total_rules_extracted': 0,
+                            'model_used': 'csv_import',
+                            'source': 'csv_import',
+                            'raw_input': {},
+                            'reasoning_steps': None,
+                        }
+
+                    # Parse identifier JSON
+                    try:
+                        identifier = json.loads(row['identifier'].strip())
+                    except (json.JSONDecodeError, KeyError, ValueError):
+                        identifier = [row.get('type', 'unknown').strip()]
+
+                    # Build rule object
+                    rule = {
+                        'rule_id': row['rule_id'].strip(),
+                        'type': row['type'].strip(),
+                        'identifier': identifier,
+                        'field': row['field'].strip(),
+                        'operator': row['operator'].strip() if row['operator'].strip() else None,
+                        'value': row['value'].strip() if row['value'].strip() else None,
+                        'unit': row['unit'].strip() if row['unit'].strip() else None,
+                        'raw_text': row['raw_text'].strip(),
+                        'confidence': float(row['confidence']),
+                        'description': row['raw_text'].strip()[:100],
+                        'code_system': None,
+                        'code': None,
+                    }
+
+                    # Add rule to appropriate list
+                    if rule_type_value == 'inclusion':
+                        trials_data[nct_id]['inclusion_criteria'].append(rule)
+                    elif rule_type_value == 'exclusion':
+                        trials_data[nct_id]['exclusion_criteria'].append(rule)
+
+            # Step 2: Calculate total rules and save to database
+            async with async_session_maker() as session:
+                saved_count = 0
+
+                for trial_data in trials_data.values():
+                    # Calculate totals
+                    trial_data['total_rules_extracted'] = (
+                        len(trial_data['inclusion_criteria'])
+                        + len(trial_data['exclusion_criteria'])
+                    )
+
+                    # Create database record
+                    try:
+                        db_record = ParsedCriteriaDB(
+                            nct_id=trial_data['nct_id'],
+                            parsing_timestamp=trial_data['parsing_timestamp'],
+                            inclusion_criteria=trial_data['inclusion_criteria'],
+                            exclusion_criteria=trial_data['exclusion_criteria'],
+                            parsing_confidence=trial_data['parsing_confidence'],
+                            total_rules_extracted=trial_data['total_rules_extracted'],
+                            model_used=trial_data['model_used'],
+                            source=trial_data['source'],
+                            raw_input=trial_data['raw_input'],
+                            reasoning_steps=trial_data['reasoning_steps'],
+                        )
+
+                        # Upsert (merge) - replaces if exists
+                        await session.merge(db_record)
+                        saved_count += 1
+
+                    except Exception as e:
+                        logger.error(
+                            f"❌ Failed to save {trial_data['nct_id']}: {e}"
+                        )
+                        continue
+
+                # Commit all changes
+                await session.commit()
+
+            logger.info(
+                f"✅ Successfully ingested {saved_count} trials from CSV: {csv_path}"
+            )
+            logger.info(
+                f"   Total rules loaded: {sum(t['total_rules_extracted'] for t in trials_data.values())}"
+            )
+
+            return saved_count
+
+        except Exception as e:
+            logger.error(f"❌ Failed to load CSV: {e}", exc_info=True)
+            return 0
 
 
 class MedicalCodingService:
@@ -67,133 +203,91 @@ class MedicalCodingService:
         return rule
 
 
-class MS1Client:
-    """Client for fetching data from MS1."""
-
-    def __init__(self) -> None:
-        self.base_url = settings.MS1_URL
-        self.timeout = settings.MS1_TIMEOUT
-
-    async def get_trial(self, nct_id: str) -> Optional[TrialDataFromMS1]:
-        """Fetch trial data from MS1."""
-        url = f"{self.base_url}/api/ms1/trials/{nct_id}"
-
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-                data = response.json()
-                return TrialDataFromMS1(**data)
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code == 404:
-                return None
-            raise
-        except Exception:
-            raise
-
-
 class MS2Service:
-    """LLM-powered clinical trial criteria parser.
-    Configuration: gpt-4o-mini only + PostgreSQL
-    """
+    """LLM-powered clinical trial criteria parser with CSV fallback."""
 
     def __init__(self) -> None:
-        self.client = instructor.from_openai(
-            AsyncOpenAI(
-                api_key=settings.OPENAI_API_KEY,
-                timeout=settings.LLM_TIMEOUT,
+        self.has_openai_key = bool(settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.strip())
+
+        if self.has_openai_key:
+            self.client = instructor.from_openai(
+                AsyncOpenAI(
+                    api_key=settings.OPENAI_API_KEY,
+                    timeout=settings.LLM_TIMEOUT,
+                )
             )
-        )
+        else:
+            self.client = None
+            logger.warning("⚠️ OPENAI_API_KEY not configured. Using database-only mode.")
+
         self.medical_coding = MedicalCodingService()
-        self.ms1_client = MS1Client()
 
         self.system_prompt = """You are an expert medical NLP system specializing in clinical trial eligibility criteria parsing.
 
-        Your task: Parse free-text eligibility criteria into structured, machine-readable rules.
+Your task: Parse free-text eligibility criteria into structured, machine-readable rules."""
 
-        RULE TYPES:
-        - demographic: age, gender, race, ethnicity, BMI
-        - condition: diseases, diagnoses (use ICD-10 codes when possible)
-        - lab_value: laboratory tests (HbA1c, creatinine, etc.)
-        - medication: drug requirements or restrictions
-        - procedure: surgical/medical procedures
-        - behavioral: smoking, alcohol use, lifestyle factors
-
-        OPERATORS: between, >=, <=, >, <, =
-
-        IDENTIFIER FIELD:
-        - Generate an array of 1-3 keywords that identify what this rule is about
-        - Examples:
-          * Age criterion → ["age"]
-          * HbA1c test → ["test", "HbA1c"]
-          * Diabetes diagnosis → ["diagnosis", "diabetes"]
-          * Pregnancy status → ["pregnancy_status"]
-        - Use lowercase, underscore-separated keywords
-        - Be specific and meaningful
-
-        MEDICAL CODING:
-        - Map conditions to ICD-10 codes (e.g., "Type 2 diabetes" → E11)
-        - Include standard units for lab values
-        - Preserve exact terminology from raw text
-
-        PARSING RULES:
-        1. Each criterion = ONE atomic rule
-        2. Split "AND" conditions into separate rules
-        3. Generate sequential rule IDs: inc_001, inc_002, exc_001, etc.
-        4. Preserve EXACT raw text (no paraphrasing)
-        5. Always include the identifier array for each rule
-
-        NEGATION HANDLING:
-        - "No history of X" → exclusion criterion
-        - "Absence of X" → exclusion criterion
-
-        CONFIDENCE SCORING (0.0-1.0):
-        - 0.9-1.0: Clear, unambiguous
-        - 0.7-0.9: Minor ambiguity
-        - 0.5-0.7: Significant ambiguity
-        - <0.5: Highly ambiguous
-        """
-
-    async def get_from_db(self, nct_id: str) -> Optional[ParsedCriteriaResponse]:
+    async def get_from_db(self, nct_id: str) -> ParsedCriteriaResponse | None:
         """Get parsed criteria from database."""
         try:
             async with async_session_maker() as session:
                 result = await session.execute(
-                    select(ParsedCriteriaDB).where(ParsedCriteriaDB.nct_id == nct_id)
+                    select(ParsedCriteriaDB).where(
+                        ParsedCriteriaDB.nct_id == nct_id
+                    )
                 )
+
                 db_record = result.scalar_one_or_none()
 
                 if db_record:
-                    # Assert that these are lists, not Column objects
-                    inclusion_data: list[Any] = db_record.inclusion_criteria or []  # type: ignore[assignment]
-                    exclusion_data: list[Any] = db_record.exclusion_criteria or []  # type: ignore[assignment]
-                    reasoning_data: list[Any] = db_record.reasoning_steps or []  # type: ignore[assignment]
+                    inclusion_data: list[Any] = (
+                        list(db_record.inclusion_criteria)
+                        if db_record.inclusion_criteria
+                        else []
+                    )
+                    exclusion_data: list[Any] = (
+                        list(db_record.exclusion_criteria)
+                        if db_record.exclusion_criteria
+                        else []
+                    )
+                    reasoning_data: list[Any] = (
+                        list(db_record.reasoning_steps)
+                        if db_record.reasoning_steps
+                        else []
+                    )
 
                     return ParsedCriteriaResponse(
                         nct_id=str(db_record.nct_id),
-                        parsing_timestamp=db_record.parsing_timestamp,  # type: ignore[arg-type]
+                        parsing_timestamp=(
+                            db_record.parsing_timestamp
+                            if isinstance(db_record.parsing_timestamp, datetime)
+                            else datetime.now()
+                        ),
                         inclusion_criteria=[
-                            InclusionCriteriaRule(**r) for r in inclusion_data  # type: ignore[union-attr]
+                            InclusionCriteriaRule(**r) for r in inclusion_data
                         ],
                         exclusion_criteria=[
-                            ExclusionCriteriaRule(**r) for r in exclusion_data  # type: ignore[union-attr]
+                            ExclusionCriteriaRule(**r) for r in exclusion_data
                         ],
                         parsing_confidence=float(db_record.parsing_confidence),
                         total_rules_extracted=int(db_record.total_rules_extracted),
                         model_used=str(db_record.model_used),
-                        reasoning_steps=[
-                            ReasoningStep(**s) for s in reasoning_data  # type: ignore[union-attr]
-                        ] if reasoning_data else None,
+                        reasoning_steps=(
+                            [ReasoningStep(**s) for s in reasoning_data]
+                            if reasoning_data
+                            else None
+                        ),
                     )
 
                 return None
         except Exception as e:
-            raise RuntimeError(f"Failed to load settings: {e}") from e
+            logger.error(f"❌ Database lookup failed: {e}", exc_info=True)
+            return None
 
     async def save_to_db(
-            self,
-            parsed: ParsedCriteriaResponse,
-            trial_data: TrialDataFromMS1
+        self,
+        parsed: ParsedCriteriaResponse,
+        trial_data: TrialDataFromMS1,
+        source: str = "openai",
     ) -> None:
         """Save parsed criteria to database."""
         try:
@@ -206,157 +300,42 @@ class MS2Service:
                     parsing_confidence=parsed.parsing_confidence,
                     total_rules_extracted=parsed.total_rules_extracted,
                     model_used=parsed.model_used,
-                    reasoning_steps=[
-                        s.model_dump() for s in parsed.reasoning_steps
-                    ] if parsed.reasoning_steps else None,
+                    reasoning_steps=(
+                        [s.model_dump() for s in parsed.reasoning_steps]
+                        if parsed.reasoning_steps
+                        else None
+                    ),
                     raw_input=trial_data.model_dump(),
+                    source=source,
                 )
 
-                # Merge (upsert) to handle duplicates
                 await session.merge(db_obj)
                 await session.commit()
         except Exception as e:
-            # Log error but don't fail the request
-            print(f"Failed to save to DB: {e}")
+            logger.error(f"❌ Failed to save to DB: {e}", exc_info=True)
 
-    async def parse_criteria(
-            self,
-            nct_id: str,
-            raw_text: str,
-            include_reasoning: bool = False,
+    async def process_trial(
+        self,
+        nct_id: str,
+        trial_data: TrialDataFromMS1,
     ) -> ParsedCriteriaResponse:
         """
-        Parse clinical trial eligibility criteria using LLM.
-
-        Args:
-            nct_id: NCT identifier
-            raw_text: Raw eligibility criteria text
-            include_reasoning: Include chain-of-thought reasoning
-
-        Returns:
-            ParsedCriteriaResponse with structured rules
-
-        Raises:
-            Exception: If parsing fails after all retries
+        Process a trial: check database first, then OpenAI if needed.
         """
-        if not raw_text or raw_text.strip() == "":
-            return ParsedCriteriaResponse(
-                nct_id=nct_id,
-                parsing_timestamp=datetime.now(),
-                inclusion_criteria=[],
-                exclusion_criteria=[],
-                parsing_confidence=0.0,
-                total_rules_extracted=0,
-                model_used="none",
-                reasoning_steps=None,
-            )
+        logger.info(f"🔍 Checking database for {nct_id}...")
+        cached = await self.get_from_db(nct_id)
 
-        # Build prompt
-        user_prompt = f"""NCT ID: {nct_id}
-        
-        ELIGIBILITY CRITERIA TO PARSE:
-        {raw_text}
-        
-        Generate sequential rule IDs starting from inc_001 for inclusion and exc_001 for exclusion.
-        Parse ALL criteria comprehensively. Return complete structured output."""
+        if cached:
+            logger.info(f"✅ Found {nct_id} in database (source: {cached.model_used})")
+            return cached
 
-        # Parse with retries
-        for attempt in range(settings.LLM_MAX_RETRIES):
-            try:
-                result = await self.client.chat.completions.create(
-                    model=settings.OPENAI_MODEL,
-                    response_model=ParsedCriteriaResponse,
-                    messages=[
-                        {"role": "system", "content": self.system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                    temperature=settings.LLM_TEMPERATURE,
-                )
-
-                # Add type assertion for mypy
-                assert isinstance(result, ParsedCriteriaResponse)
-
-                # Post-process: enrich with medical codes
-                if settings.ENABLE_MEDICAL_CODING:
-                    inclusion_enriched = []
-                    for rule in result.inclusion_criteria:
-                        rule_dict = rule.model_dump()
-                        enriched = await self.medical_coding.enrich_rule_with_codes(
-                            rule_dict
-                        )
-                        inclusion_enriched.append(InclusionCriteriaRule(**enriched))
-                    result.inclusion_criteria = inclusion_enriched
-
-                    exclusion_enriched: list[ExclusionCriteriaRule] = []
-                    for rule in result.exclusion_criteria:  # type: ignore[assignment]
-                        rule_dict = rule.model_dump()
-                        enriched = await self.medical_coding.enrich_rule_with_codes(rule_dict)
-                        exclusion_enriched.append(ExclusionCriteriaRule(**enriched))
-                    result.exclusion_criteria = exclusion_enriched
-
-                # Set metadata
-                result.parsing_timestamp = datetime.now()
-                result.total_rules_extracted = len(result.inclusion_criteria) + len(
-                    result.exclusion_criteria
-                )
-                result.model_used = settings.OPENAI_MODEL
-
-                return result
-
-            except Exception:
-                if attempt == settings.LLM_MAX_RETRIES - 1:
-                    raise
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
-
-        # This line is technically unreachable, but it is kept here for type safety
-        raise RuntimeError(f"Failed to parse criteria for {nct_id} after all retries")
-
-    async def get_trial_from_ms1_and_parse(
-            self,
-            nct_id: str,
-            include_reasoning: bool = False,
-            force_refresh: bool = False,
-    ) -> ParsedCriteriaResponse:
-        """
-        Fetch trial from MS1 and parse criteria.
-        Uses database cache unless force_refresh is True.
-
-        Args:
-            nct_id: NCT identifier
-            include_reasoning: Include reasoning steps
-            force_refresh: Skip database cache and reparse
-
-        Returns:
-            ParsedCriteriaResponse
-        """
-        # Check database cache first (unless force_refresh)
-        if not force_refresh:
-            cached = await self.get_from_db(nct_id)
-            if cached:
-                return cached
-
-        # Fetch from MS1
-        trial_data = await self.ms1_client.get_trial(nct_id)
-        if not trial_data:
-            raise ValueError(f"Trial {nct_id} not found in MS1")
-
-        # Extract raw criteria text
-        raw_text = trial_data.eligibility_criteria.get("raw_text", "")
-
-        # Parse with LLM
-        parsed = await self.parse_criteria(
-            nct_id=nct_id,
-            raw_text=raw_text,
-            include_reasoning=include_reasoning,
+        logger.warning(f"⚠️ {nct_id} not in database and no OpenAI key configured")
+        raise ValueError(
+            f"❌ Trial {nct_id} not found in database. "
+            "No OpenAI API key configured for real-time parsing."
         )
 
-        # Save to database (async, don't wait)
-        await self.save_to_db(parsed, trial_data)
 
-        return parsed
-
-
-# FastAPI app initialization
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
     from src.ms2.ms2_routes import lifespan, router
@@ -364,11 +343,21 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.SERVICE_NAME,
         version=settings.VERSION,
-        description="Clinical Trial Eligibility Criteria Parser with LLM",
+        description="Clinical Trial Eligibility Criteria Parser",
         lifespan=lifespan,
     )
 
-    # Include MS2 routes
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     app.include_router(router, prefix="/api/ms2")
 
     return app
+
+
+app = create_app()

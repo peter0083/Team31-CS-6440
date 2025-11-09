@@ -17,11 +17,13 @@ from src.ms2.ms2_config import settings
 
 class Base(AsyncAttrs, DeclarativeBase):
     """Base class for all database models."""
+
     pass
 
 
 class ParsedCriteriaDB(Base):
     """Database model for storing parsed criteria."""
+
     __tablename__ = "parsed_criteria"
 
     nct_id = Column(String(20), primary_key=True, index=True)
@@ -36,6 +38,7 @@ class ParsedCriteriaDB(Base):
     version = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    source = Column(String(50), default="openai")  # 'csv_import' or 'openai'
 
     __table_args__ = (
         Index('idx_confidence_timestamp', 'parsing_confidence', 'parsing_timestamp'),
@@ -52,9 +55,7 @@ engine = create_async_engine(
 )
 
 async_session_maker = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
@@ -73,7 +74,7 @@ async def init_db() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
 
-async def close_db()  -> None:
+async def close_db() -> None:
     """Close database connections."""
     await engine.dispose()
 
