@@ -51,7 +51,7 @@ function MS2HealthStatus() {
         <div className="flex items-center gap-3">
           <span className="text-3xl">{getStatusIcon()}</span>
           <div>
-            <h3 className="font-semibold text-gray-800">MS2 Service Status</h3>
+            <h3 className="font-semibold text-gray-800">MS2 Service - Clinical Trial Criteria Parser Status</h3>
             <p className="text-sm text-gray-600">
               {loading ? "Checking..." : error ? error : `Status: ${health?.status || "unknown"}`}
             </p>

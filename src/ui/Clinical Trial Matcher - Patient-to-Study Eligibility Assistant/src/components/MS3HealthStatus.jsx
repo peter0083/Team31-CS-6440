@@ -49,25 +49,25 @@ function MS3HealthStatus() {
   };
 
   return (
-    <div
-      style={{
-        padding: "10px 15px",
-        margin: "10px 0",
-        borderRadius: "5px",
-        backgroundColor: getStatusColor(),
-        color: "white",
-        fontWeight: "bold",
-        fontSize: "14px",
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-      }}
-    >
-      <span style={{ fontSize: "18px" }}>{getStatusIcon()}</span>
-      <span>
-        MS3 Phenotype Builder:{" "}
-        {loading ? "Checking..." : error ? error : `Status: ${health?.status || "unknown"}`}
-      </span>
+    <div className="mb-8 p-4 bg-white rounded-lg shadow-md border-l-4" style={{ borderLeftColor: getStatusColor() }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{getStatusIcon()}</span>
+          <div>
+            <h3 className="font-semibold text-gray-800">MS3 Service - Patient Phenotype Status</h3>
+            <p className="text-sm text-gray-600">
+              {loading ? "Checking..." : error ? error : `Status: ${health?.status || "unknown"}`}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={checkHealth}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 font-semibold text-sm transition-all"
+        >
+          {loading ? "Checking..." : "Refresh"}
+        </button>
+      </div>
     </div>
   );
 }

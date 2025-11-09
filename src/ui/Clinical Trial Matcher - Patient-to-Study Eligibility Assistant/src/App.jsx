@@ -77,7 +77,7 @@ function App() {
 
       {/* Health Status Components */}
       <div style={{ backgroundColor: "#f8f9fa", padding: "15px", borderRadius: "8px", marginBottom: "20px" }}>
-        <h3 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#333" }}>🔍 Service Status</h3>
+        <h3 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#333" }}>ℹ️ Service Status</h3>
         <MS2HealthStatus />
         <MS3HealthStatus />
       </div>
