@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-function HealthStatus() {
+function MS2HealthStatus() {
   const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -69,4 +69,4 @@ function HealthStatus() {
   );
 }
 
-export default HealthStatus;
+export default MS2HealthStatus;
