@@ -61,3 +61,6 @@ Thumbs.db
 # Misc
 *.swp
 *~
+
+# MS3 patient data from Synthea
+data/ms3/

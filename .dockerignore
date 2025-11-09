@@ -62,7 +62,7 @@ npm-debug.log
 yarn-error.log
 
 # Data and temp files
-# data/ <--- need data folder for ms1
+# data/ <--- need data folder for ms1, ms2, ms3
 tmp/
 temp/
 *.tmp
