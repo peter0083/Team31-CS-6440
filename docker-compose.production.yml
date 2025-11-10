@@ -53,7 +53,7 @@ services:
     env_file:
       - src/ms2/.env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-postgres}@postgres:5432/ms2_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
       - MS1_URL=http://ms1:8001
       - ENVIRONMENT=production
       - LOG_LEVEL=info
