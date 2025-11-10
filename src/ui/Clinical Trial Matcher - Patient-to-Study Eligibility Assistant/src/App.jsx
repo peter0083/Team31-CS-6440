@@ -125,7 +125,7 @@ function App() {
   // ✅ FIXED: Handle trial selection to show MS4 match results
   const handleSelectTrial = (trial) => {
     console.log("🎯 Trial selected:", { trialId: trial.nct_id, patientsCount: patients.length });
-    setSelectedTrial(trial.nct_id);
+    setSelectedTrial(trial);
     setShowMatchResults(true);
     
     // Scroll to match results

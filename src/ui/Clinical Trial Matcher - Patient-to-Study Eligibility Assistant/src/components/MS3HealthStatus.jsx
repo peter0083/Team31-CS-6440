@@ -43,17 +43,24 @@ function MS3HealthStatus() {
   };
 
   useEffect(() => {
-    checkHealth();
-    checkInitStatus();
+  // Only poll if initialization is NOT complete
+  if (initStatus?.is_initialized) {
+    console.log("✅ Initialization complete - stopping polling");
+    return;  // Exit early - no polling needed
+  }
 
-    const healthInterval = setInterval(checkHealth, 10000);
-    const initInterval = setInterval(checkInitStatus, 2000);
+  checkHealth();
+  checkInitStatus();
 
-    return () => {
-      clearInterval(healthInterval);
-      clearInterval(initInterval);
-    };
-  }, []);
+  const healthInterval = setInterval(checkHealth, 10000);
+  const initInterval = setInterval(checkInitStatus, 2000);
+
+  return () => {
+    clearInterval(healthInterval);
+    clearInterval(initInterval);
+  };
+}, [initStatus?.is_initialized]);  // Re-run when is_initialized changes
+
 
   const getStatusColor = () => {
     if (error) return "#dc3545";
