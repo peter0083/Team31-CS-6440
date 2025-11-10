@@ -1,11 +1,6 @@
-'''import time
-
-from fastapi import FastAPI
-from pydantic import BaseModel
+import time
 
 from src.ms4.trial import Trial
-
-app = FastAPI()
 
 sample_trial_data = {
     "nct_id": "NCT05123456",
@@ -398,7 +393,7 @@ def print_dots(count: int = 3, delay: float = 0.25, end: str = "\n") -> None:
         time.sleep(delay)
     print(end, end="")
 
-    def main() -> None:
+def main() -> None:
     # print_dots(3, 0.25)
     trial_json = sample_trial_data
     trial = Trial(trial_json)
@@ -408,7 +403,7 @@ def print_dots(count: int = 3, delay: float = 0.25, end: str = "\n") -> None:
     
 if __name__ == "__main__":
     main()
-'''
+
 
 
 
