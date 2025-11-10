@@ -400,17 +400,42 @@ def _load_duckdb_background(
                 print("[INIT] Tables already exist")
         except Exception:
             tables_exist = False
-        
+
         if tables_exist and not force_reload:
             print("[INIT] Tables already populated. Skipping initialization.")
-            with _state.lock:
-                _state.is_initialized = True
-                _state.is_loading = False
-                _state.end_time = time.time()
+
+            # Query existing counts from database
+            try:
+                patient_count = conn.execute("SELECT COUNT(*) FROM patient").fetchone()
+                condition_count = conn.execute("SELECT COUNT(*) FROM condition").fetchone()
+                observation_count = conn.execute("SELECT COUNT(*) FROM observation").fetchone()
+                medreq_count = conn.execute("SELECT COUNT(*) FROM medicationrequest").fetchone()
+
+                with _state.lock:
+                    _state.patients_loaded = patient_count
+                    _state.conditions_loaded = condition_count
+                    _state.observations_loaded = observation_count
+                    _state.medications_loaded = medreq_count
+                    _state.is_initialized = True
+                    _state.is_loading = False
+                    _state.end_time = time.time()
+
+                print("[INIT] Loaded existing data counts:")
+                print(f"       Patients: {patient_count}")
+                print(f"       Conditions: {condition_count}")
+                print(f"       Observations: {observation_count}")
+                print(f"       Medications: {medreq_count}")
+            except Exception as e:
+                print(f"[INIT] Error querying existing data: {e}")
+                with _state.lock:
+                    _state.is_initialized = True
+                    _state.is_loading = False
+                    _state.end_time = time.time()
+
             conn.close()
             return
-        
-        # Drop existing tables if forcing reload
+
+            # Drop existing tables if forcing reload
         if force_reload:
             print("[INIT] Dropping existing tables...")
             for table in ["patient", "condition", "observation", "medicationrequest"]:

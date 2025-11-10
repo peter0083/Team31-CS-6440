@@ -1,4 +1,4 @@
-// MS3HealthStatus.jsx - Enhanced with DuckDB loading progress
+// MS3HealthStatus.jsx - Fixed to show "Patients fully loaded" when initialization is skipped
 
 import React, { useState, useEffect } from "react";
 
@@ -8,7 +8,6 @@ function MS3HealthStatus() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Use environment variables with fallbacks
   const MS3_HEALTH_URL = import.meta.env.VITE_MS3_HEALTH_URL || "http://localhost:8003/live";
   const MS3_INIT_URL = import.meta.env.VITE_MS3_INIT_URL || "http://localhost:8003/api/ms3/initialization-status";
 
@@ -37,13 +36,12 @@ function MS3HealthStatus() {
       }
       const data = await response.json();
       setInitStatus(data);
+      console.log("Init status updated:", data);
     } catch (err) {
       console.error("MS3 initialization status error:", err);
     }
   };
 
-  // Check health on mount and every 10 seconds
-  // Check init status more frequently (every 2 seconds) during initialization
   useEffect(() => {
     checkHealth();
     checkInitStatus();
@@ -58,10 +56,10 @@ function MS3HealthStatus() {
   }, []);
 
   const getStatusColor = () => {
-    if (error) return "#dc3545"; // Red
-    if (!health) return "#6c757d"; // Gray
-    if (health.status === "alive") return "#28a745"; // Green
-    return "#ffc107"; // Yellow
+    if (error) return "#dc3545";
+    if (!health) return "#6c757d";
+    if (health.status === "alive") return "#28a745";
+    return "#ffc107";
   };
 
   const getStatusIcon = () => {
@@ -79,38 +77,83 @@ function MS3HealthStatus() {
   };
 
   const renderInitializationStatus = () => {
-    if (!initStatus) return null;
-
-    if (initStatus.is_initialized) {
+    if (!initStatus) {
       return (
-        <div style={{ fontSize: "12px", color: "#28a745", marginTop: "8px" }}>
-          ✅ Fully Initialized
-          <br />
-          {initStatus.progress.patients.toLocaleString()} patients loaded
+        <div style={{ fontSize: "12px", color: "#666", marginTop: "8px" }}>
+          ⏳ Fetching initialization status...
         </div>
       );
+    }
+
+    if (initStatus.is_initialized) {
+      // NEW: Check if this is a skip-initialization case
+      // (is_initialized=true but is_loading=false and files_processed=0)
+      const isSkipped = initStatus.progress.files_processed === 0 && !initStatus.is_loading;
+      
+      if (isSkipped) {
+        // Tables already populated - show "fully loaded" message
+        return (
+          <div style={{ fontSize: "12px", color: "#28a745", marginTop: "8px" }}>
+            <div style={{ fontWeight: "600", marginBottom: "6px" }}>
+              ✅ Patients Fully Loaded
+            </div>
+            <div>
+              👥 <strong>{initStatus.progress.patients.toLocaleString()}</strong> patients
+            </div>
+            <div>
+              🏥 <strong>{initStatus.progress.conditions.toLocaleString()}</strong> conditions
+            </div>
+            <div>
+              📊 <strong>{initStatus.progress.observations.toLocaleString()}</strong> observations
+            </div>
+            <div>
+              💊 <strong>{initStatus.progress.medications.toLocaleString()}</strong> medications
+            </div>
+          </div>
+        );
+      } else {
+        // Normal initialization complete
+        return (
+          <div style={{ fontSize: "12px", color: "#28a745", marginTop: "8px" }}>
+            ✅ Initialization Complete
+            <br />
+            {initStatus.progress.patients.toLocaleString()} patients loaded
+          </div>
+        );
+      }
     }
 
     if (initStatus.is_loading) {
       const progress = getInitProgressPercentage();
       return (
         <div style={{ fontSize: "12px", color: "#ffc107", marginTop: "8px" }}>
-          ⏳ Initializing DuckDB...
-          <br />
-          Progress: {progress}% ({initStatus.progress.files_processed}/{initStatus.progress.total_files} files)
-          <br />
-          <small>
-            {initStatus.progress.patients.toLocaleString()} patients |{" "}
-            {initStatus.progress.conditions.toLocaleString()} conditions |{" "}
-            {initStatus.progress.observations.toLocaleString()} observations
-          </small>
+          <div style={{ fontWeight: "600", marginBottom: "6px" }}>
+            ⏳ Initializing DuckDB...
+          </div>
+          <div>
+            <strong>Progress:</strong> {progress}% ({initStatus.progress.files_processed}/{initStatus.progress.total_files} files)
+          </div>
+          <div style={{ marginTop: "6px", fontSize: "11px" }}>
+            <div>
+              👥 <strong>{initStatus.progress.patients.toLocaleString()}</strong> patients
+            </div>
+            <div>
+              🏥 <strong>{initStatus.progress.conditions.toLocaleString()}</strong> conditions
+            </div>
+            <div>
+              📊 <strong>{initStatus.progress.observations.toLocaleString()}</strong> observations
+            </div>
+            <div>
+              💊 <strong>{initStatus.progress.medications.toLocaleString()}</strong> medications
+            </div>
+          </div>
           <div
             style={{
               width: "100%",
-              height: "4px",
+              height: "6px",
               backgroundColor: "#e9ecef",
-              borderRadius: "2px",
-              marginTop: "4px",
+              borderRadius: "3px",
+              marginTop: "8px",
               overflow: "hidden",
             }}
           >
@@ -144,21 +187,31 @@ function MS3HealthStatus() {
     <div
       style={{
         display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "12px",
+        alignItems: "flex-start",
+        gap: "12px",
+        padding: "16px",
         backgroundColor: "#f8f9fa",
-        borderRadius: "4px",
+        borderRadius: "6px",
         border: `2px solid ${getStatusColor()}`,
         fontWeight: "500",
-        minWidth: "200px",
+        minWidth: "280px",
       }}
     >
-      <span style={{ fontSize: "20px" }}>{getStatusIcon()}</span>
-      <div>
-        <div>
+      <span style={{ fontSize: "24px", flexShrink: 0 }}>
+        {getStatusIcon()}
+      </span>
+      <div style={{ flex: 1 }}>
+        {/* Service Name */}
+        <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "4px" }}>
+          MS3 Service - Synthea Patient Loader Status
+        </div>
+
+        {/* Status */}
+        <div style={{ fontSize: "13px", color: "#666" }}>
           {loading ? "Checking..." : error ? error : `Status: ${health?.status || "unknown"}`}
         </div>
+
+        {/* Initialization Details */}
         {renderInitializationStatus()}
       </div>
     </div>
