@@ -4,6 +4,7 @@ import MS3HealthStatus from "./components/MS3HealthStatus.jsx";
 import MS4TrialMatchResults from "./components/MS4TrialMatchResults.jsx";
 import "../../index.css";
 import "../../MS4TrialMatchResults.css";
+import "../../HealthStatusHeader.css";
 
 /**
  * Clinical Trial Patient Matcher App
@@ -121,10 +122,19 @@ function App() {
     setExpandedTrial(expandedTrial === nctId ? null : nctId);
   };
 
-  // Handle trial selection to show MS4 match results
+  // ✅ FIXED: Handle trial selection to show MS4 match results
   const handleSelectTrial = (trial) => {
+    console.log("🎯 Trial selected:", { trialId: trial.nct_id, patientsCount: patients.length });
     setSelectedTrial(trial.nct_id);
     setShowMatchResults(true);
+    
+    // Scroll to match results
+    setTimeout(() => {
+      const element = document.querySelector(".match-results-section");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
   return (
@@ -248,11 +258,22 @@ function App() {
                           </div>
                         )}
 
+                        {/* ✅ BUTTON WITH BETTER STATE INDICATION */}
                         <button
                           onClick={() => handleSelectTrial(trial)}
-                          className="btn btn--primary"
+                          className={`btn btn--primary ${
+                            selectedTrial === trial.nct_id ? "btn--active" : ""
+                          }`}
+                          style={{
+                            backgroundColor:
+                              selectedTrial === trial.nct_id
+                                ? "#10b981"
+                                : undefined,
+                          }}
                         >
-                          View Patient Matches →
+                          {selectedTrial === trial.nct_id
+                            ? "✓ Viewing Patient Matches"
+                            : "View Patient Matches →"}
                         </button>
                       </div>
                     )}

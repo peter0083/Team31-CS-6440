@@ -1,67 +1,64 @@
+# main.py - Updated to use async DuckDB initialization
+
 from __future__ import annotations
 
 import glob
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 
+# Import async initialization module
+import init_duckdb_async
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Path
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import Condition as ConditionItem  # type: ignore
+from schemas import Condition as ConditionItem
 from schemas import DataCompleteness, Demographics, LabResult, Medication, Phenotype
 
 # --- Optional imports (loaded lazily) ---
 _DUCKDB_AVAILABLE = False
 try:
-    import duckdb  # type: ignore
+    import duckdb
     _DUCKDB_AVAILABLE = True
 except Exception:
     pass
 
 _HIVE_AVAILABLE = False
 try:
-    from pyhive import hive  # type: ignore
+    from pyhive import hive
     _HIVE_AVAILABLE = True
 except Exception:
     pass
 
 # === Config (env-driven with safe defaults) ===
+
 USE_DUCKDB = os.getenv("USE_DUCKDB", "1") == "1"
-
-# If using DuckDB with Parquet, you can either:
-#  - Set a DATABASE file (DUCKDB_FILE), OR
-#  - Point to Parquet globs per table (DWH_*_GLOB)
-DUCKDB_FILE = os.getenv("DUCKDB_FILE")  # e.g., "/data/ms3.duckdb"
-
-# Parquet directory globs (when no DUCKDB_FILE is given)
-DWH_PATH = os.getenv("DWH_PATH")  # e.g., "/data/dwh"
+DUCKDB_FILE = os.getenv("DUCKDB_FILE")
+DWH_PATH = os.getenv("DWH_PATH")
 PATIENT_GLOB = os.getenv("DWH_PATIENT_GLOB") or (f"{DWH_PATH}/patient/*.parquet" if DWH_PATH else None)
 CONDITION_GLOB = os.getenv("DWH_CONDITION_GLOB") or (f"{DWH_PATH}/condition/*.parquet" if DWH_PATH else None)
 OBSERVATION_GLOB = os.getenv("DWH_OBSERVATION_GLOB") or (f"{DWH_PATH}/observation/*.parquet" if DWH_PATH else None)
 MEDREQ_GLOB = os.getenv("DWH_MEDREQ_GLOB") or (f"{DWH_PATH}/medicationrequest/*.parquet" if DWH_PATH else None)
 
-# Hive/Trino/Thrift (if not using DuckDB)
 HIVE_HOST = os.getenv("HIVE_HOST", "localhost")
 HIVE_PORT = int(os.getenv("HIVE_PORT", "10000"))
 HIVE_USERNAME = os.getenv("HIVE_USERNAME", "hive")
 HIVE_DATABASE = os.getenv("HIVE_DATABASE", "default")
 
-# Table names (logical)
 TBL_PATIENT = os.getenv("TBL_PATIENT", "patient")
 TBL_CONDITION = os.getenv("TBL_CONDITION", "condition")
 TBL_OBSERVATION = os.getenv("TBL_OBSERVATION", "observation")
 TBL_MEDREQ = os.getenv("TBL_MEDREQ", "medicationrequest")
 
-# Allowed CORS origins for the frontend
 CORS_ALLOW_ORIGINS = [
     o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "http://localhost:3000").split(",") if o.strip()
 ]
 
-
 # =========================================================
 # Database access helpers
 # =========================================================
+
 _duckdb_conn = None
 _hive_conn = None
 _initialized_views = False
@@ -72,35 +69,28 @@ def _get_duckdb() -> "duckdb.DuckDBPyConnection":
     global _duckdb_conn, _initialized_views
     if not _DUCKDB_AVAILABLE:
         raise RuntimeError("duckdb not installed; set USE_DUCKDB=0 or install duckdb")
-
     if _duckdb_conn is None:
         if DUCKDB_FILE:
             _duckdb_conn = duckdb.connect(DUCKDB_FILE, read_only=False)
         else:
-            # In-memory database; we will register Parquet views if globs are provided.
             _duckdb_conn = duckdb.connect(":memory:")
-
-        # Create views over parquet globs if present
-        if not DUCKDB_FILE:
-            view_specs = [
-                (TBL_PATIENT, PATIENT_GLOB),
-                (TBL_CONDITION, CONDITION_GLOB),
-                (TBL_OBSERVATION, OBSERVATION_GLOB),
-                (TBL_MEDREQ, MEDREQ_GLOB),
-            ]
-        for logical, glob_path in view_specs:
-            if not glob_path:
-                continue
-            matches = glob.glob(glob_path)
-            if not matches:
-                # no files yet; skip creating this view
-                continue
-            _duckdb_conn.execute(
-            f"CREATE OR REPLACE VIEW {logical} AS SELECT * FROM read_parquet('{glob_path}')"
-            )
-        _initialized_views = True
-
-
+            if not DUCKDB_FILE:
+                view_specs = [
+                    (TBL_PATIENT, PATIENT_GLOB),
+                    (TBL_CONDITION, CONDITION_GLOB),
+                    (TBL_OBSERVATION, OBSERVATION_GLOB),
+                    (TBL_MEDREQ, MEDREQ_GLOB),
+                ]
+                for logical, glob_path in view_specs:
+                    if not glob_path:
+                        continue
+                    matches = glob.glob(glob_path)
+                    if not matches:
+                        continue
+                    _duckdb_conn.execute(
+                        f"CREATE OR REPLACE VIEW {logical} AS SELECT * FROM read_parquet('{glob_path}')"
+                    )
+            _initialized_views = True
     return _duckdb_conn
 
 
@@ -109,29 +99,25 @@ def _get_hive() -> Any:
     global _hive_conn
     if not _HIVE_AVAILABLE:
         raise RuntimeError("pyhive not installed; set USE_DUCKDB=1 or install pyhive/thrift")
-
     if _hive_conn is None:
         _hive_conn = hive.Connection(
             host=HIVE_HOST,
             port=HIVE_PORT,
             username=HIVE_USERNAME,
             database=HIVE_DATABASE,
-            auth="NOSASL",  # adjust for your env
+            auth="NOSASL",
         )
     return _hive_conn
 
 
 def q(sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
+    """Execute query and return DataFrame."""
     if USE_DUCKDB:
         con = _get_duckdb()
-        # duckdb's .fetch_df() is untyped -> cast to DataFrame
         df = con.execute(sql, params or {}).fetch_df()
         return cast(pd.DataFrame, df)
-
     con = _get_hive()
     cur = con.cursor()
-
-    # bind/escape params for Hive if you’re not using parameterized queries
     bound_sql = sql
     if params:
         def _escape(v: Any) -> str:
@@ -142,7 +128,6 @@ def q(sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
             return "'" + str(v).replace("'", "''") + "'"
         for k, v in params.items():
             bound_sql = bound_sql.replace(f":{k}", _escape(v))
-
     cur.execute(bound_sql)
     cols = [c[0] for c in (cur.description or [])]
     rows = cur.fetchall() if cur.description else []
@@ -151,9 +136,55 @@ def q(sql: str, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
 
 
 # =========================================================
-# App
+# ✓ LIFESPAN HANDLER - STARTS ASYNC INITIALIZATION
 # =========================================================
-app = FastAPI(title="MS3 — Patient Phenotype Builder", version="1.0.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    FastAPI lifespan event handler.
+    Starts async background DuckDB initialization.
+    Service starts immediately while loading continues.
+    """
+    # Startup
+    print("[STARTUP] MS3 Service starting up...")
+    
+    if USE_DUCKDB and DUCKDB_FILE:
+        synthea_fhir_glob = os.getenv("SYNTHEA_FHIR_GLOB", "/data/ms3/synthea/*.json")
+        force_reload = os.getenv("FORCE_RELOAD", "0") == "1"
+        
+        # Start background initialization (non-blocking)
+        init_duckdb_async.start_async_initialization(
+            duckdb_file=DUCKDB_FILE,
+            synthea_fhir_glob=synthea_fhir_glob,
+            force_reload=force_reload
+        )
+        print("[STARTUP] Background initialization started. Service is now ready!")
+    else:
+        print("[STARTUP] DuckDB async initialization skipped (USE_DUCKDB=0 or no DUCKDB_FILE)")
+    
+    yield
+    
+    # Shutdown
+    print("[SHUTDOWN] MS3 Service shutting down...")
+    global _duckdb_conn, _hive_conn
+    if _duckdb_conn:
+        _duckdb_conn.close()
+        _duckdb_conn = None
+    if _hive_conn:
+        _hive_conn.close()
+        _hive_conn = None
+
+
+# =========================================================
+# ✓ APP INITIALIZATION WITH LIFESPAN
+# =========================================================
+
+app = FastAPI(
+    title="MS3 — Patient Phenotype Builder",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -163,68 +194,119 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # =========================================================
 # Health endpoints
 # =========================================================
+
 @app.get("/live")
 def live() -> Dict[str, str]:
+    """Liveness probe - service is running."""
     return {"status": "alive"}
 
 
 @app.get("/ready")
 def ready() -> Dict[str, str]:
-    """
-    Readiness checks:
-    - Can we open a DB connection?
-    - If DuckDB without file: if globs exist, views are created.
-    - Try a lightweight count on patient table (tolerate empty).
-    """
-    try:
-        if USE_DUCKDB:
-            _ = _get_duckdb()
-        else:
-            _ = _get_hive()
-    except Exception as e:
-        # Not ready: cannot connect
-        raise HTTPException(status_code=503, detail=f"db_not_ready: {e}")
-
-    # Optional sanity query (tolerate zero rows)
-    try:
-        sql = f"SELECT 1 FROM {TBL_PATIENT} LIMIT 1"
-        _ = q(sql)
-    except Exception:
-        # Patient table might not exist yet; still report not ready
-        raise HTTPException(status_code=503, detail="patient_table_missing")
-
+    """Readiness probe - service is ready to handle requests."""
+    status = init_duckdb_async.get_initialization_status()
+    
+    # If still initializing but tables exist, we can serve requests
+    if not status["is_initialized"]:
+        # Check if tables exist in database
+        try:
+            if USE_DUCKDB:
+                _ = _get_duckdb()
+            else:
+                _ = _get_hive()
+        except Exception as e:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Initializing... Error: {str(e)}"
+            )
+        
+        try:
+            sql = f"SELECT 1 FROM {TBL_PATIENT} LIMIT 1"
+            _ = q(sql)
+        except Exception:
+            # Tables don't exist yet, but that's ok - still initializing
+            raise HTTPException(
+                status_code=503,
+                detail=f"Initializing... {status['progress']['files_processed']}/{status['progress']['total_files']} files processed"
+            )
+    
     return {"status": "ready"}
 
 
-# =========================================================
-# Utilities
-# =========================================================
-def _iso_now() -> str:
-    return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat()
-
-
-def _opt_str(v: Any) -> Optional[str]:
-    if v is None:
-        return None
-    s = str(v).strip()
-    return s if s else None
-
-
-def _first_present(d: Dict[str, Any], *candidates: str) -> Any:
-    """Return the first non-null, present value under the provided candidate keys."""
-    for k in candidates:
-        if k in d and pd.notna(d[k]):
-            return d[k]
-    return None
+@app.get("/api/ms3/initialization-status")
+def initialization_status() -> Dict[str, Any]:
+    """
+    Get detailed initialization progress.
+    Useful for monitoring the background loader.
+    """
+    return init_duckdb_async.get_initialization_status()
 
 
 # =========================================================
-# Contract endpoint
+# Patient endpoints
 # =========================================================
+
+@app.get("/api/ms3/patients")
+def get_patients(condition: Optional[str] = None) -> Dict[str, Any]:
+    """Return a list of patient IDs."""
+    # Check if initialization is complete
+    status = init_duckdb_async.get_initialization_status()
+    if not status["is_initialized"]:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Service initializing... {status['progress']['patients']} patients loaded so far"
+        )
+    
+    try:
+        sql_get_patients = f"""
+        SELECT DISTINCT p.id as patient_id
+        FROM {TBL_PATIENT} p
+        LIMIT 100
+        """
+        df_patients = q(sql_get_patients)
+
+        if condition:
+            condition_lower = condition.lower().strip()
+            condition_pattern = f"%{condition_lower}%"
+            sql_filtered = f"""
+            SELECT DISTINCT p.id as patient_id
+            FROM {TBL_PATIENT} p
+            INNER JOIN {TBL_CONDITION} c ON p.id = c.subject_id
+            WHERE LOWER(c.description) LIKE '{condition_pattern}'
+            OR LOWER(c.code) LIKE '{condition_pattern}'
+            LIMIT 100
+            """
+            df_patients = q(sql_filtered)
+
+        patients = []
+        if df_patients is not None and not df_patients.empty:
+            for idx, row in df_patients.iterrows():
+                patient_id = str(row["patient_id"]).strip()
+                patients.append({
+                    "patient_id": patient_id,
+                    "id": patient_id,
+                    "name": None
+                })
+
+        return {
+            "patients": patients,
+            "total": len(patients),
+            "condition": condition
+        }
+
+    except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"ERROR in /api/ms3/patients: {error_trace}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error fetching patients: {str(e)}"
+        )
+
+
 @app.get(
     "/api/ms3/patient-phenotype/{patient_id}",
     response_model=Phenotype,
@@ -235,9 +317,16 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
     Build a normalized phenotype from FHIR-like tables.
     Assumes Synthea-ish schemas; environment variables allow renaming/mapping.
     """
+    
+    # Check if initialization is complete
+    status = init_duckdb_async.get_initialization_status()
+    if not status["is_initialized"]:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Service initializing... {status['progress']['patients']} patients loaded so far"
+        )
 
     # ---------------- Demographics ----------------
-    # Common Synthea columns: id, birthDate, gender, race, ethnicity
     pdf = q(
         f"""
         SELECT *
@@ -273,7 +362,6 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
     )
 
     # ---------------- Conditions ----------------
-    # Common Synthea columns: subject_id, code, codeSystem, description, onsetDateTime, clinicalStatus
     cdf = q(
         f"""
         SELECT *
@@ -299,9 +387,6 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
             )
 
     # ---------------- Lab results (Observations) ----------------
-    # Common Synthea columns:
-    #   subject_id, code, display, valueQuantity_value, valueQuantity_unit,
-    #   effectiveDateTime, referenceRange_text, status
     odf = q(
         f"""
         SELECT *
@@ -314,7 +399,6 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
 
     lab_results: List[LabResult] = []
     if not odf.empty:
-        # normalize names and get latest per 'test' (display)
         tmp = odf.copy()
         # create normalized columns if missing
         if "display" not in tmp.columns:
@@ -351,9 +435,6 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
             )
 
     # ---------------- Medications (MedicationRequest) ----------------
-    # Common Synthea columns:
-    #   subject_id, medication_text, generic_name, dose_text, frequency_text,
-    #   authoredOn, status
     mdf = q(
         f"""
         SELECT *
@@ -391,7 +472,6 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
             )
 
     # ---------------- Pregnancy & Smoking (simple baseline) ----------------
-    # You can refine with specific LOINC/Observation codes later.
     pregnancy_status = "not_pregnant"
     smoking_status = "never_smoker"
 
@@ -408,11 +488,13 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
             missing_fields.append("demographics.age")
 
     cond_score = 1.0 if len(conditions) > 0 else 0.5
+
     labs_score = 0.0
     if len(lab_results) > 0:
         labs_score = 0.5
         if any((lr.test or "").lower().startswith("hba1c") for lr in lab_results):
             labs_score = min(1.0, labs_score + 0.5)
+
     med_score = 1.0 if len(medications) > 0 else 0.0
 
     overall = round((demo_score + cond_score + labs_score + med_score) / 4.0, 2)
@@ -438,3 +520,26 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
         smoking_status=smoking_status,
         data_completeness=completeness,
     )
+
+
+# =========================================================
+# Utilities
+# =========================================================
+
+def _iso_now() -> str:
+    return datetime.now(tz=timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _opt_str(v: Any) -> Optional[str]:
+    if v is None:
+        return None
+    s = str(v).strip()
+    return s if s else None
+
+
+def _first_present(d: Dict[str, Any], *candidates: str) -> Any:
+    """Return the first non-null, present value under the provided candidate keys."""
+    for k in candidates:
+        if k in d and pd.notna(d[k]):
+            return d[k]
+    return None

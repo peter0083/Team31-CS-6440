@@ -1,9 +1,12 @@
+// SearchBox.jsx - Enhanced to show "No matches found" message
+
 import { useState } from "react";
 
 export default function SearchBox({ onResults }) {
   const [term, setTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [searchStatus, setSearchStatus] = useState(null);
 
   const handleSearch = async () => {
     if (!term.trim()) {
@@ -12,12 +15,15 @@ export default function SearchBox({ onResults }) {
     }
 
     setError("");
+    setSearchStatus(null);
     setLoading(true);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/search-trials", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ term }),
       });
 
@@ -27,10 +33,29 @@ export default function SearchBox({ onResults }) {
 
       const data = await response.json();
       console.log("Search complete:", data);
+
+      // Check if results are empty
+      const trialCount = data?.trials?.length || 0;
+      if (trialCount === 0) {
+        setSearchStatus({
+          type: "no-results",
+          message: `No clinical trials found matching "${term}"`,
+        });
+      } else {
+        setSearchStatus({
+          type: "success",
+          message: `Found ${trialCount} clinical trial${trialCount !== 1 ? "s" : ""}`,
+        });
+      }
+
       onResults(data);
       setTerm("");
     } catch (err) {
       setError("Search failed. Please try again.");
+      setSearchStatus({
+        type: "error",
+        message: "Failed to search trials",
+      });
       console.error("Search failed:", err);
     } finally {
       setLoading(false);
@@ -44,31 +69,81 @@ export default function SearchBox({ onResults }) {
   };
 
   return (
-    <div className="w-full bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-2xl font-bold text-blue-600 mb-4">Search Clinical Trials</h2>
-
-      <div className="flex gap-2 mb-4">
+    <div style={{ marginBottom: "20px" }}>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
         <input
           type="text"
-          placeholder="Enter a search term (e.g., diabetes, cancer)..."
           value={term}
           onChange={(e) => setTerm(e.target.value)}
           onKeyPress={handleKeyPress}
+          placeholder="Search clinical trials (e.g., diabetes, hypertension)"
           disabled={loading}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+          style={{
+            flex: 1,
+            padding: "10px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "14px",
+            opacity: loading ? 0.6 : 1,
+          }}
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 font-semibold transition-all whitespace-nowrap"
+          style={{
+            padding: "10px 20px",
+            backgroundColor: loading ? "#ccc" : "#007bff",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: loading ? "not-allowed" : "pointer",
+            fontWeight: "500",
+          }}
         >
           {loading ? "Searching..." : "Search"}
         </button>
       </div>
 
       {error && (
-        <div className="text-red-600 bg-red-50 p-3 rounded-lg border border-red-200 text-sm">
-          {error}
+        <div
+          style={{
+            color: "#dc3545",
+            padding: "10px",
+            backgroundColor: "#f8d7da",
+            borderRadius: "4px",
+            marginBottom: "10px",
+          }}
+        >
+          ❌ {error}
+        </div>
+      )}
+
+      {searchStatus && (
+        <div
+          style={{
+            padding: "10px",
+            backgroundColor:
+              searchStatus.type === "success"
+                ? "#d4edda"
+                : searchStatus.type === "no-results"
+                ? "#fff3cd"
+                : "#f8d7da",
+            color:
+              searchStatus.type === "success"
+                ? "#155724"
+                : searchStatus.type === "no-results"
+                ? "#856404"
+                : "#721c24",
+            borderRadius: "4px",
+            marginBottom: "10px",
+          }}
+        >
+          {searchStatus.type === "success"
+            ? "✅"
+            : searchStatus.type === "no-results"
+            ? "ℹ️"
+            : "❌"}{" "}
+          {searchStatus.message}
         </div>
       )}
     </div>

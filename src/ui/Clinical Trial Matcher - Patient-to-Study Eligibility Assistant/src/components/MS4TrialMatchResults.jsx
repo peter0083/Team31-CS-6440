@@ -1,28 +1,29 @@
+// MS4TrialMatchResults.jsx - Enhanced to show trial name and location
+
 import React, { useState, useEffect } from "react";
 
-/**
- * MS4TrialMatchResults Component
- * Displays patients matched to clinical trials with their compatibility scores
- *
- * Shows:
- * - Trial information (title, criteria count)
- * - Matched patients ranked by compatibility
- * - Patient demographics and match details
- * - Visual score indicators
- */
-
-const MS4TrialMatchResults = ({ trialId, patients = [] }) => {
+const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
   const [matchResults, setMatchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedPatient, setExpandedPatient] = useState(null);
   const [sortBy, setSortBy] = useState("score");
 
-  const API_MS4_URL =
-    import.meta.env.VITE_API_MS4_URL || "http://localhost:8004";
+  const API_MS4_URL = import.meta.env.VITE_API_MS4_URL || "http://localhost:8004";
+
+  // Extract trial info
+  const trialId = trialData?.nct_id || "";
+  const trialTitle = trialData?.official_title || trialData?.title || "Unknown Trial";
+  const trialLocation = trialData?.location || trialData?.locations?.[0] || "Location not available";
+  const trialPhase = trialData?.phase || "Unknown";
 
   useEffect(() => {
-    console.log("🔍 MS4TrialMatchResults mounted with:", { trialId, patients: patients.length });
+    console.log("🔍 MS4TrialMatchResults mounted with:", {
+      trialId,
+      trialTitle,
+      patients: patients.length,
+    });
+
     if (trialId && patients.length > 0) {
       fetchMatchResults();
     }
@@ -31,14 +32,20 @@ const MS4TrialMatchResults = ({ trialId, patients = [] }) => {
   const fetchMatchResults = async () => {
     setLoading(true);
     setError("");
+
     try {
       const patientIds = patients.map((p) => p.id || p.patient_id);
       console.log("📤 Sending match request:", { trialId, patientIds });
 
       const response = await fetch(`${API_MS4_URL}/api/ms4/match-trial`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nct_id: trialId, patient_ids: patientIds }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nct_id: trialId,
+          patient_ids: patientIds,
+        }),
       });
 
       console.log("📥 Response status:", response.status);
@@ -50,7 +57,6 @@ const MS4TrialMatchResults = ({ trialId, patients = [] }) => {
       const data = await response.json();
       console.log("📊 Match results:", data);
 
-      // Handle different response formats
       const results = data.results || data.matches || data.data || [];
       console.log("✅ Parsed results:", results);
 
@@ -100,9 +106,8 @@ const MS4TrialMatchResults = ({ trialId, patients = [] }) => {
   // Loading state
   if (loading) {
     return (
-      <div className="match-results-loading">
-        <div className="spinner"></div>
-        <p>⏳ Analyzing patient-trial compatibility...</p>
+      <div style={{ padding: "20px", textAlign: "center", color: "#666" }}>
+        ⏳ Analyzing patient-trial compatibility...
       </div>
     );
   }
@@ -110,153 +115,260 @@ const MS4TrialMatchResults = ({ trialId, patients = [] }) => {
   // Error state
   if (error) {
     return (
-      <div className="alert alert-error">
-        <p>❌ {error}</p>
-        <details>
-          <summary>Debug Info</summary>
-          <pre>
-            trialId: {trialId}
-            {"\n"}
-            patients: {patients.length}
-            {"\n"}
-            API_MS4_URL: {API_MS4_URL}
-          </pre>
-        </details>
+      <div
+        style={{
+          padding: "20px",
+          backgroundColor: "#f8d7da",
+          color: "#721c24",
+          borderRadius: "4px",
+          marginTop: "20px",
+        }}
+      >
+        ❌ {error}
       </div>
     );
   }
 
-  // No patients
-  if (!patients || patients.length === 0) {
+  // No patients state
+  if (!patients.length) {
     return (
-      <div className="match-results-empty">
-        <p>No patient data available for matching.</p>
+      <div
+        style={{
+          padding: "20px",
+          backgroundColor: "#e2e3e5",
+          color: "#383d41",
+          borderRadius: "4px",
+          marginTop: "20px",
+        }}
+      >
+        No patient data available for matching.
       </div>
     );
   }
 
-  // No results from API
+  // No results state
   if (matchResults.length === 0) {
     return (
-      <div className="match-results-empty">
-        <p>⚠️ No match results available yet.</p>
-        <p style={{ fontSize: "0.9rem", opacity: 0.7 }}>
-          Trial ID: {trialId}
-          <br />
-          Patients: {patients.length}
-        </p>
-        <button onClick={fetchMatchResults} className="btn btn--secondary">
-          🔄 Retry
-        </button>
+      <div
+        style={{
+          padding: "20px",
+          backgroundColor: "#fff3cd",
+          color: "#856404",
+          borderRadius: "4px",
+          marginTop: "20px",
+        }}
+      >
+        ⚠️ No match results available yet.
       </div>
     );
   }
 
-  // Display results
+  const matchLabel =
+    matchResults.length === 1
+      ? "1 patient matches"
+      : `${matchResults.length} patients match`;
+
   return (
-    <div className="match-results-container">
+    <div style={{ marginTop: "30px", borderTop: "2px solid #ddd", paddingTop: "20px" }}>
+      {/* Trial Header with Name and Location */}
+      <div
+        style={{
+          backgroundColor: "#f8f9fa",
+          padding: "20px",
+          borderRadius: "8px",
+          marginBottom: "20px",
+          border: "1px solid #dee2e6",
+        }}
+      >
+        <div style={{ marginBottom: "15px" }}>
+          <div style={{ fontSize: "11px", color: "#666", textTransform: "uppercase" }}>
+            Trial ID: {trialId}
+          </div>
+          <h3
+            style={{
+              margin: "8px 0",
+              fontSize: "18px",
+              fontWeight: "600",
+              color: "#333",
+            }}
+          >
+            {trialTitle}
+          </h3>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "15px",
+            fontSize: "14px",
+          }}
+        >
+          <div>
+            <strong>Location:</strong>
+            <div style={{ color: "#666", marginTop: "4px" }}>{trialLocation}</div>
+          </div>
+          <div>
+            <strong>Phase:</strong>
+            <div style={{ color: "#666", marginTop: "4px" }}>{trialPhase}</div>
+          </div>
+          <div>
+            <strong>Patient Matches:</strong>
+            <div
+              style={{
+                color: "#28a745",
+                fontWeight: "600",
+                marginTop: "4px",
+                fontSize: "18px",
+              }}
+            >
+              {matchResults.length}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Results Summary */}
+      <div
+        style={{
+          padding: "15px",
+          backgroundColor: "#d4edda",
+          color: "#155724",
+          borderRadius: "4px",
+          marginBottom: "20px",
+          textAlign: "center",
+          fontWeight: "500",
+        }}
+      >
+        ✅ Found <strong>{matchResults.length}</strong> {matchLabel} for trial{" "}
+        <strong>{trialId}</strong>
+      </div>
+
       {/* Sort Controls */}
-      <div className="match-controls">
-        <label htmlFor="sort-by">Sort by:</label>
+      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+        <label style={{ fontSize: "14px", fontWeight: "500" }}>Sort by:</label>
         <select
-          id="sort-by"
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="form-control"
+          onChange={(e) => {
+            setSortBy(e.target.value);
+            setMatchResults(sortResults(matchResults));
+          }}
+          style={{
+            padding: "6px 10px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
         >
           <option value="score">Compatibility Score</option>
-          <option value="percentage">Percentage Match</option>
+          <option value="percentage">Match Percentage</option>
           <option value="name">Patient ID</option>
         </select>
       </div>
 
-      {/* Results Summary */}
-      <div className="results-summary">
-        <p>
-          Found <strong>{matchResults.length}</strong> patients analyzed for
-          trial <strong>{trialId}</strong>
-        </p>
-      </div>
-
-      {/* Patient Results */}
-      <div className="match-results-list">
+      {/* Patient Results List */}
+      <div>
         {matchResults.map((result) => {
           const isExpanded = expandedPatient === result.patient_id;
-          const matchQuality = getMatchQualityClass(result.percentage || 0);
-          const matchLabel = getMatchQualityLabel(result.percentage || 0);
+          const percentage = (result.percentage || 0).toFixed(0);
+          const qualityClass = getMatchQualityClass(percentage);
+          const qualityLabel = getMatchQualityLabel(percentage);
 
           return (
-            <div key={result.patient_id} className="patient-match-card card">
-              {/* Card Header */}
+            <div
+              key={result.patient_id}
+              style={{
+                border: "1px solid #ddd",
+                borderRadius: "6px",
+                padding: "15px",
+                marginBottom: "10px",
+                backgroundColor: isExpanded ? "#f8f9fa" : "#fff",
+                cursor: "pointer",
+                transition: "background-color 0.2s",
+              }}
+              onClick={() => togglePatientExpanded(result.patient_id)}
+            >
               <div
-                className={`match-card-header ${matchQuality}`}
-                onClick={() => togglePatientExpanded(result.patient_id)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr auto",
+                  alignItems: "center",
+                  gap: "15px",
+                }}
               >
-                <div className="patient-info">
-                  <h3 className="patient-name">Patient {result.patient_id}</h3>
-                  <p className="match-status">{matchLabel}</p>
+                {/* Match Quality Badge */}
+                <div
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    borderRadius: "50%",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: "bold",
+                    color: "#fff",
+                    backgroundColor:
+                      qualityClass === "match-excellent"
+                        ? "#28a745"
+                        : qualityClass === "match-good"
+                        ? "#17a2b8"
+                        : qualityClass === "match-fair"
+                        ? "#ffc107"
+                        : "#dc3545",
+                  }}
+                >
+                  <div style={{ fontSize: "20px" }}>{percentage}%</div>
+                  <div style={{ fontSize: "10px" }}>Match</div>
                 </div>
 
-                <div className="match-score-badge">
-                  <div className="score-value">
-                    {(result.percentage || 0).toFixed(0)}%
+                {/* Patient Info */}
+                <div>
+                  <div style={{ fontWeight: "600", fontSize: "16px", marginBottom: "4px" }}>
+                    Patient {result.patient_id}
                   </div>
-                  <div className="score-label">Match</div>
+                  <div style={{ fontSize: "13px", color: "#666" }}>
+                    {qualityLabel} • Score: {(result.score || 0).toFixed(2)}
+                  </div>
                 </div>
 
-                <span className="toggle-icon">
+                {/* Expand Button */}
+                <div style={{ fontSize: "20px" }}>
                   {isExpanded ? "▼" : "▶"}
-                </span>
+                </div>
               </div>
 
-              {/* Card Body (Expanded) */}
+              {/* Expanded Details */}
               {isExpanded && (
-                <div className="match-card-body">
-                  {/* Overall Assessment */}
-                  <div className="assessment-section">
-                    <h4>Overall Assessment</h4>
-                    <p>
-                      Patient meets <strong>{(result.percentage || 0).toFixed(0)}%</strong> of the
-                      trial's eligibility criteria with a compatibility score of{" "}
-                      <strong>{(result.score || 0).toFixed(2)}</strong>.
-                    </p>
+                <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #dee2e6" }}>
+                  <div style={{ fontSize: "14px", color: "#333" }}>
+                    <strong>Eligibility Criteria Met:</strong>
+                    <div style={{ color: "#666", marginTop: "8px" }}>
+                      Patient meets <strong>{percentage}%</strong> of the trial's eligibility
+                      criteria with a compatibility score of <strong>{(result.score || 0).toFixed(2)}</strong>.
+                    </div>
                   </div>
 
-                  {/* Criteria Rules */}
+                  {/* Criteria Details */}
                   {result.criteria && result.criteria.length > 0 && (
-                    <div className="criteria-section">
-                      <h4>Eligibility Criteria</h4>
-                      <ul className="criteria-list">
+                    <div style={{ marginTop: "12px" }}>
+                      <strong>Matching Criteria:</strong>
+                      <div style={{ marginTop: "8px" }}>
                         {result.criteria.map((criterion, idx) => (
-                          <li key={idx} className="criterion-item">
-                            <strong>Rule {criterion.ruleId}:</strong>{" "}
-                            {criterion.description}
-                            {criterion.rawText && (
-                              <div className="criterion-raw">
-                                <code>{criterion.rawText}</code>
-                              </div>
-                            )}
-                          </li>
+                          <div
+                            key={idx}
+                            style={{
+                              padding: "8px",
+                              backgroundColor: "#f0f0f0",
+                              borderRadius: "3px",
+                              marginBottom: "6px",
+                              fontSize: "13px",
+                              fontFamily: "monospace",
+                            }}
+                          >
+                            ✓ {criterion.rawText || criterion.text}
+                          </div>
                         ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Demographics */}
-                  {result.demographics && (
-                    <div className="demographics-section">
-                      <h4>Patient Demographics</h4>
-                      <div className="demographics-grid">
-                        {Object.entries(result.demographics).map(
-                          ([key, value]) => (
-                            <div key={key} className="demographic-item">
-                              <span className="label">
-                                {key.replace(/_/g, " ")}:
-                              </span>
-                              <span className="value">{value}</span>
-                            </div>
-                          )
-                        )}
                       </div>
                     </div>
                   )}
