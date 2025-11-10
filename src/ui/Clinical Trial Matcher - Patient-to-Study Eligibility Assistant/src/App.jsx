@@ -125,7 +125,7 @@ function App() {
   // ✅ FIXED: Handle trial selection to show MS4 match results
   const handleSelectTrial = (trial) => {
     console.log("🎯 Trial selected:", { trialId: trial.nct_id, patientsCount: patients.length });
-    setSelectedTrial(trial);
+    setSelectedTrial(trial.nct_id);
     setShowMatchResults(true);
     
     // Scroll to match results
@@ -212,7 +212,8 @@ function App() {
                       onClick={() => toggleExpanded(trial.nct_id)}
                     >
                       <div className="trial-info">
-                        <h3 className="trial-title">{trial.brief_title}</h3>
+                        <h3 className="trial-title">{trial.title}</h3>
+                          <p className="trial-location">Location: {trial.location}</p>
                         <p className="trial-nct">NCT ID: {trial.nct_id}</p>
                       </div>
 
@@ -299,7 +300,7 @@ function App() {
             </div>
 
             <MS4TrialMatchResults
-              trialId={selectedTrial}
+              trialData={{ nct_id: selectedTrial }}
               patients={patients}
             />
           </section>
@@ -311,13 +312,12 @@ function App() {
             <h2>Patient Phenotypes (MS3)</h2>
 
             <div className="patients-grid">
-              {patients.slice(0, 3).map((patient) => (
-                <div key={patient.patient_id || patient.id} className="patient-card">
-                  <MS3HealthStatus
-                    patientId={patient.patient_id || patient.id}
-                  />
-                </div>
-              ))}
+                {patients.slice(0, 3).map((patient) => (
+                  <div key={patient.patient_id || patient.id} className="patient-card">
+                    <h4>Patient: {patient.patient_id || patient.id}</h4>
+                    <p>Status: Loaded from MS3</p>
+                  </div>
+                ))}
             </div>
 
             {patients.length > 3 && (

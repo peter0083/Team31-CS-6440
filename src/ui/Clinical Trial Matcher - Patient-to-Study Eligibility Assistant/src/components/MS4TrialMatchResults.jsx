@@ -30,23 +30,27 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
   }, [trialId, patients]);
 
   const fetchMatchResults = async () => {
-    setLoading(true);
-    setError("");
+  try {
+    // Build the trial object
+    const trialObject = {
+      nct_id: trialId,
+      official_title: trialTitle,
+      // Add other trial fields as needed
+    };
 
-    try {
-      const patientIds = patients.map((p) => p.id || p.patient_id);
-      console.log("📤 Sending match request:", { trialId, patientIds });
+    const patientIds = patients.map(p => p.patient_id || p.id);
 
-      const response = await fetch(`${API_MS4_URL}/api/ms4/match-trial`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nct_id: trialId,
-          patient_ids: patientIds,
-        }),
-      });
+    console.log("📤 Sending match request:", { trialId, patientIds });
+
+    const response = await fetch(`${API_MS4_URL}/match`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        raw_patients: JSON.stringify(patients),
+        raw_trial: JSON.stringify(trialObject)
+      })
+    });
+
 
       console.log("📥 Response status:", response.status);
 

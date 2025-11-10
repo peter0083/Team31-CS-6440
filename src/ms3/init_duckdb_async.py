@@ -560,7 +560,7 @@ def start_async_initialization(
     thread = threading.Thread(
         target=_load_duckdb_background,
         args=(duckdb_file, synthea_fhir_glob, force_reload),
-        daemon=True
+        daemon=False  # ensure that the data is fully loaded instead of stopping pre-maturely
     )
     thread.start()
     print("[INIT] Background thread started. Service can now start immediately!")

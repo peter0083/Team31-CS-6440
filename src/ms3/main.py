@@ -274,7 +274,12 @@ def get_patients(condition: Optional[str] = None) -> Dict[str, Any]:
             sql_filtered = f"""
             SELECT DISTINCT p.id as patient_id
             FROM {TBL_PATIENT} p
-            INNER JOIN {TBL_CONDITION} c ON p.id = c.subject_id
+            INNER JOIN {TBL_CONDITION} c 
+              ON p.id = CASE 
+                WHEN c.subject_id LIKE 'urn:uuid:%' 
+                THEN substr(c.subject_id, 10)  -- Extract UUID from 'urn:uuid:...'
+                ELSE c.subject_id
+              END
             WHERE LOWER(c.description) LIKE '{condition_pattern}'
             OR LOWER(c.code) LIKE '{condition_pattern}'
             LIMIT 100
@@ -305,6 +310,25 @@ def get_patients(condition: Optional[str] = None) -> Dict[str, Any]:
             status_code=500,
             detail=f"Error fetching patients: {str(e)}"
         )
+
+
+@app.get("/api/ms3/debug/counts")
+def debug_counts() -> Dict[str, Any]:
+    """Debug endpoint to check record counts."""
+    try:
+        patient_count = int(q(f"SELECT COUNT(*) as cnt FROM {TBL_PATIENT}").iloc[0]['cnt'])
+        condition_count = int(q(f"SELECT COUNT(*) as cnt FROM {TBL_CONDITION}").iloc[0]['cnt'])
+
+        # Try to get a sample condition
+        sample_condition = q(f"SELECT * FROM {TBL_CONDITION} LIMIT 1")
+
+        return {
+            "patients": patient_count,
+            "conditions": condition_count,
+            "sample_condition": sample_condition.to_dict('records') if not sample_condition.empty else None
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get(
