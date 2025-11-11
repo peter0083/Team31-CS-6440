@@ -207,7 +207,7 @@ def transform_ms3_phenotype_for_ms4(phenotype: Dict[str, Any]) -> Dict[str, Any]
             "demographics": {...}
         },
         "conditions": [...],
-        "lab_results": [...],
+        "labresults": [...],
         ...
     }
     
@@ -226,7 +226,7 @@ def transform_ms3_phenotype_for_ms4(phenotype: Dict[str, Any]) -> Dict[str, Any]
             "demographics": phenotype.get("demographics", {})
         },
         "conditions": phenotype.get("conditions", []),
-        "lab_results": phenotype.get("lab_results", []),
+        "labresults": phenotype.get("lab_results", []),
         "medications": phenotype.get("medications", []),
         "pregnancy_status": phenotype.get("pregnancy_status"),
         "smoking_status": phenotype.get("smoking_status"),
@@ -364,7 +364,6 @@ async def match_trial_to_patients(
         from src.ms4.trial import Trial
         
         trial = Trial(trial_data)
-        trial.set_meet_percentage(meet_percentage)
         
         results: Any = trial.evaluate(patients)
         
@@ -445,7 +444,6 @@ async def match_trial_to_multiple_patients_batch(
     trial_data = await fetch_trial_criteria(nct_id)
     from src.ms4.trial import Trial
     trial = Trial(trial_data)
-    trial.set_meet_percentage(meet_percentage)
     
     # Process in batches
     for i in range(0, len(patient_ids), batch_size):

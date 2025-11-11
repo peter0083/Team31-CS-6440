@@ -12,8 +12,12 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
   const API_MS4_URL = import.meta.env.VITE_API_MS4_URL || "http://localhost:8004";
 
   // Extract trial info
-  const trialId = trialData?.nct_id || "";
-  const trialTitle = trialData?.official_title || trialData?.title || "Unknown Trial";
+  const trialId = typeof trialData === 'string'
+    ? trialData
+    : (trialData?.nct_id || trialData?.nctid || trialData?.NCT_ID);
+  const trialTitle = typeof trialData === 'object'
+    ? (trialData?.official_title || trialData?.title || 'Unknown Trial')
+    : 'Unknown Trial';
   const trialLocation = trialData?.location || trialData?.locations?.[0] || "Location not available";
   const trialPhase = trialData?.phase || "Unknown";
 
@@ -24,33 +28,51 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
       patients: patients.length,
     });
 
+      // debug code
+      console.log('=== PATIENTS DATA STRUCTURE ===');
+      console.log('First patient:', patients[0]);
+      console.log('Patient keys:', Object.keys(patients[0] || {}));
+      // end of debug code
+
     if (trialId && patients.length > 0) {
       fetchMatchResults();
     }
   }, [trialId, patients]);
 
   const fetchMatchResults = async () => {
-  try {
-    // Build the trial object
-    const trialObject = {
-      nct_id: trialId,
-      official_title: trialTitle,
-      // Add other trial fields as needed
-    };
+    try {
+      // Prepare patients with full phenotype data
+      const enrichedPatients = patients.map(patient => ({
+        patient_id: patient.patient_id || patient.id,
+        id: patient.id || patient.patient_id,
+        general: patient.general || {
+          demographics: patient.demographics || {}
+        },
+        conditions: patient.conditions || [],
+        lab_results: patient.lab_results || [],
+        observations: patient.observations || [],
+        medications: patient.medications || [],
+        name: patient.name
+      }));
 
-    const patientIds = patients.map(p => p.patient_id || p.id);
+      const trialObject = { nct_id: trialId, official_title: trialTitle };
+      const payload = {
+        rawpatients: JSON.stringify(enrichedPatients),
+        rawtrial: JSON.stringify(trialObject)
+      };
 
-    console.log("📤 Sending match request:", { trialId, patientIds });
+    // Debug: Log the exact payload
+    console.log('=== PAYLOAD DEBUG ===');
+    console.log('Payload:', payload);
+    console.log('rawpatients length:', payload.rawpatients.length);
+    console.log('rawtrial length:', payload.rawtrial.length);
+    console.log('Stringified:', JSON.stringify(payload));
 
     const response = await fetch(`${API_MS4_URL}/match`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        raw_patients: JSON.stringify(patients),
-        raw_trial: JSON.stringify(trialObject)
-      })
+      body: JSON.stringify(payload)
     });
-
 
       console.log("📥 Response status:", response.status);
 

@@ -42,6 +42,23 @@ function MS3HealthStatus() {
     }
   };
 
+
+  // fetch full patient data directly from MS3 and send to MS4
+  const fetchFullPatients = async (patientIds) => {
+  try {
+    const response = await fetch(`http://localhost:8003/patients`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patient_ids: patientIds })
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (err) {
+    console.error('Error fetching full patients:', err);
+    return [];
+  }
+};
+
   useEffect(() => {
   // Only poll if initialization is NOT complete
   if (initStatus?.is_initialized) {

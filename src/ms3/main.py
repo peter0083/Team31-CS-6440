@@ -188,7 +188,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ALLOW_ORIGINS,
+    allow_origins=["*"],  # TODO: not secure at all but other settings don't seem to work
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -352,13 +352,8 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
 
     # ---------------- Demographics ----------------
     pdf = q(
-        f"""
-        SELECT *
-        FROM {TBL_PATIENT}
-        WHERE id = :pid
-        LIMIT 1
-        """,
-        {"pid": patient_id},
+        f"SELECT * FROM {TBL_PATIENT} WHERE id = :patient_id LIMIT 1",
+        {"patient_id": patient_id}
     )
 
     if pdf.empty:
@@ -387,13 +382,8 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
 
     # ---------------- Conditions ----------------
     cdf = q(
-        f"""
-        SELECT *
-        FROM {TBL_CONDITION}
-        WHERE subject_id = :pid
-        ORDER BY COALESCE(onsetDateTime, onset_date, '1970-01-01') DESC
-        """,
-        {"pid": patient_id},
+        f"SELECT * FROM {TBL_CONDITION} WHERE subject_id = :patient_id ORDER BY COALESCE(onsetDateTime, onset_date, '1970-01-01') DESC",
+        {"patient_id": patient_id}
     )
 
     conditions: List[ConditionItem] = []
@@ -412,13 +402,8 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
 
     # ---------------- Lab results (Observations) ----------------
     odf = q(
-        f"""
-        SELECT *
-        FROM {TBL_OBSERVATION}
-        WHERE subject_id = :pid
-        ORDER BY COALESCE(effectiveDateTime, effective_date, '1970-01-01') DESC
-        """,
-        {"pid": patient_id},
+        f"SELECT * FROM {TBL_OBSERVATION} WHERE subject_id = :patient_id ORDER BY COALESCE(effectiveDateTime, effective_date, '1970-01-01') DESC",
+        {"patient_id": patient_id}
     )
 
     lab_results: List[LabResult] = []
@@ -460,13 +445,8 @@ def get_patient_phenotype(patient_id: str = Path(..., min_length=1)) -> Phenotyp
 
     # ---------------- Medications (MedicationRequest) ----------------
     mdf = q(
-        f"""
-        SELECT *
-        FROM {TBL_MEDREQ}
-        WHERE subject_id = :pid
-        ORDER BY COALESCE(authoredOn, start_date, '1970-01-01') DESC
-        """,
-        {"pid": patient_id},
+        f"SELECT * FROM {TBL_MEDREQ} WHERE subject_id = :patient_id ORDER BY COALESCE(authoredOn, start_date, '1970-01-01') DESC",
+        {"patient_id": patient_id}
     )
 
     medications: List[Medication] = []

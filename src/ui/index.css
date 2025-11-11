@@ -1548,3 +1548,23 @@ select.form-control {
   src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
     format('woff2');
 }
+
+/* Toggle arrow icon styling */
+.toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px !important;
+  font-weight: bold;
+  min-width: 32px;
+  height: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.toggle-icon:hover {
+  transform: scale(1.2);
+}
