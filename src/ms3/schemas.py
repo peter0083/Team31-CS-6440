@@ -1,55 +1,76 @@
-# schemas.py
-from typing import Annotated, List, Optional
+from datetime import date, datetime
+from typing import Annotated, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
+# =========================================================
+# DEMOGRAPHICS (with age)
+# =========================================================
 
 class Demographics(BaseModel):
-    age: Annotated[int, Field(examples=[45])]
-    gender: Annotated[str, Field(examples=["female"])]
-    race: Annotated[str, Field(examples=["White"])]
-    ethnicity: Annotated[str, Field(examples=["Not Hispanic or Latino"])]
+    """Patient demographic information including age calculated from birth date."""
+    patient_id: Annotated[str, Field(examples=["patient-001"])]
+    birth_date: Optional[date] = Field(None, examples=["1940-01-01"])
+    age: Optional[int] = Field(None, examples=[84])
+    gender: Optional[str] = Field(None, examples=["male"])
+    race: Optional[str] = Field(None, examples=["American Indian or Alaska Native"])
+    ethnicity: Optional[str] = Field(None, examples=["Not Hispanic or Latino"])
+
+
+# =========================================================
+# CONDITION
+# =========================================================
 
 class Condition(BaseModel):
-    code_system: Annotated[str, Field(examples=["ICD-10"])]
-    code: Annotated[str, Field(examples=["E11"])]
-    description: Annotated[str, Field(examples=["Type 2 diabetes mellitus"])]
-    onset_date: Optional[str] = Field(None, examples=["2020-03-15"])
-    status: Optional[str] = Field(None, examples=["active"])
+    """Clinical condition diagnosed for a patient."""
+    condition_id: Annotated[str, Field(examples=["cond-001"])]
+    code: Optional[str] = Field(None, examples=["224299000"])
+    code_system: Optional[str] = Field(None, examples=["http://snomed.info/sct"])
+    description: Optional[str] = Field(None, examples=["Received higher education (finding)"])
+    onset_date_time: Optional[Union[datetime, str]] = Field(None, examples=["2020-01-15T10:30:00"])
+    clinical_status: Optional[str] = Field(None, examples=["active"])
+
+
+# =========================================================
+# LAB RESULT (OBSERVATION)
+# =========================================================
 
 class LabResult(BaseModel):
-    test: Annotated[str, Field(examples=["HbA1c"])]
-    value: Optional[float] = Field(None, examples=[8.2])
+    """Laboratory observation result for a patient."""
+    observation_id: Annotated[str, Field(examples=["obs-001"])]
+    code: Optional[str] = Field(None, examples=["4548-4"])
+    code_system: Optional[str] = Field(None, examples=["http://loinc.org"])
+    display: Optional[str] = Field(None, examples=["Hemoglobin A1c/Hemoglobin.total in Blood"])
+    value: Optional[float] = Field(None, examples=[7.5])
     unit: Optional[str] = Field(None, examples=["%"])
-    date: Optional[str] = Field(None, examples=["2025-09-15"])
-    reference_range: Optional[str] = Field(None, examples=["4.0-5.6"])
+    effective_date_time: Optional[Union[datetime, str]] = Field(None, examples=["2020-06-15T10:30:00"])
+    reference_range_text: Optional[str] = Field(None, examples=["4.0-6.0"])
     status: Optional[str] = Field(None, examples=["final"])
 
+
+# =========================================================
+# MEDICATION
+# =========================================================
+
 class Medication(BaseModel):
-    name: Annotated[str, Field(examples=["Metformin"])]
-    generic_name: Optional[str] = Field("", examples=["metformin hydrochloride"])
-    dosage: Optional[str] = Field("", examples=["500mg"])
-    frequency: Optional[str] = Field("", examples=["twice daily"])
-    start_date: Optional[str] = Field(None, examples=["2020-03-20"])
+    """Medication request for a patient."""
+    medication_id: Annotated[str, Field(examples=["med-001"])]
+    name: Optional[str] = Field(None, examples=["Naproxen sodium 220 MG Oral Tablet"])
+    generic_name: Optional[str] = Field(None, examples=["Naproxen sodium"])
+    dose: Optional[str] = Field(None, examples=["220 MG"])
+    frequency: Optional[str] = Field(None, examples=["Twice daily"])
+    authored_on: Optional[Union[datetime, str]] = Field(None, examples=["2020-01-15T10:30:00"])
     status: Optional[str] = Field(None, examples=["active"])
 
-class DataCompleteness(BaseModel):
-    overall_score: Annotated[float, Field(examples=[0.85])]
-    demographics_score: Annotated[float, Field(examples=[1.0])]
-    conditions_score: Annotated[float, Field(examples=[0.9])]
-    labs_score: Annotated[float, Field(examples=[0.8])]
-    medications_score: Annotated[float, Field(examples=[0.95])]
-    missing_fields: List[str] = Field(default_factory=list, examples=[["family_history", "allergies"]])
+
+# =========================================================
+# PHENOTYPE (COMPLETE PATIENT PROFILE)
+# =========================================================
 
 class Phenotype(BaseModel):
-    patient_id: Annotated[str, Field(examples=["patient-001"])]
-    phenotype_timestamp: Annotated[str, Field(examples=["2025-10-09T18:00:00Z"])]
+    """Complete patient phenotype profile including demographics, conditions, labs, and medications."""
+    patient_id: str
     demographics: Demographics
-    conditions: List[Condition]
-    lab_results: List[LabResult]
-    medications: List[Medication]
-    pregnancy_status: Annotated[str, Field(examples=["not_pregnant"])]
-    smoking_status: Annotated[str, Field(examples=["never_smoker"])]
-    data_completeness: DataCompleteness
-
-
+    conditions: List[Condition] = []
+    lab_results: List[LabResult] = []
+    medications: List[Medication] = []
