@@ -77,7 +77,7 @@ class Trial:
                 patient_id=patient_id,
                 match_percentage=round(match_percentage, 2)
             )
-        
+
         return None
     
     def _matches_criterion(self, patient: Dict[str, Any], criterion: Dict[str, Any]) -> bool:
@@ -126,6 +126,8 @@ class Trial:
                         return pv_str == v_str
                     elif operator == "!=":
                         return pv_str != v_str
+                    else:  # If operator is neither "=" nor "!="
+                        return False
             
             # Condition/diagnosis (empty in current data)
             elif criterion_type == "condition":

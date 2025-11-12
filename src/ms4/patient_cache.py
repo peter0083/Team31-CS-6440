@@ -172,7 +172,7 @@ class PatientCache:
                     if isinstance(result, Exception):
                         logger.warning(f"[PATIENT CACHE] Failed to fetch {patient_id}: {result}")
                         failed += 1
-                    else:
+                    elif isinstance(result, dict):
                         self.patients[patient_id] = result
                         successful += 1
                 
