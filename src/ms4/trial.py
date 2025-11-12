@@ -115,6 +115,8 @@ class Trial:
                             return pv < vv
                         elif operator == "=":
                             return pv == vv
+                        else:
+                            return False
                     except (ValueError, TypeError):
                         return False
                 
