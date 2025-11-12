@@ -1,7 +1,9 @@
 """MS2 API routes - Clinical Trial Criteria Parser
 
 Receives trial data from MS1, checks database first, then parses with OpenAI if needed.
+
 Ingests CSV mock data on startup.
+
 """
 
 import logging
@@ -39,7 +41,6 @@ parsed_cache: dict[str, Any] = {}
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Initialize and cleanup on startup/shutdown."""
-
     # Startup
     print(f"\n{'='*60}")
     print(f"🚀 Starting {settings.SERVICE_NAME} v{settings.VERSION}")
@@ -61,7 +62,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     csv_loaded = False
     for csv_path in csv_paths:
         if Path(csv_path).exists():
-            print(f"   Found: {csv_path}")
+            print(f" Found: {csv_path}")
             records = await CSVDataLoader.load_csv_into_db(csv_path)
             if records > 0:
                 print(f"✅ Loaded {records} trials from CSV into PostgreSQL")
@@ -69,22 +70,21 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 break
 
     if not csv_loaded:
-        print("⚠️  No CSV mock data found (optional)")
+        print("⚠️ No CSV mock data found (optional)")
 
     # Check OpenAI configuration
     print("\n🔑 Checking OpenAI configuration...")
     if settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.strip():
         print("✅ OpenAI API key configured")
-        print(f"   Model: {settings.OPENAI_MODEL}")
+        print(f" Model: {settings.OPENAI_MODEL}")
     else:
-        print("⚠️  OPENAI_API_KEY not configured")
-        print("   Will use database-only mode (CSV/import data only)")
+        print("⚠️ OPENAI_API_KEY not configured")
+        print(" Will use database-only mode (CSV/import data only)")
 
     # Check database connection
     db_connected = await check_db_connection()
     if db_connected:
         print("\n✅ PostgreSQL database connected")
-
         # Count existing parsed criteria
         async with async_session_maker() as session:
             result = await session.execute(
@@ -92,10 +92,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             )
             db_record = result.scalar_one_or_none()
             if db_record:
-                print("   Database has pre-parsed trial data available")
+                print(" Database has pre-parsed trial data available")
     else:
         print("\n❌ PostgreSQL database NOT connected")
-        print("   Warning: Database operations will fail")
+        print(" Warning: Database operations will fail")
 
     print(f"\n{'='*60}\n")
 
@@ -111,10 +111,9 @@ router = APIRouter()
 service = MS2Service()
 start_time = time.time()
 
-
-# ────────────────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
 # MS1-to-MS2 Integration Endpoints
-# ────────────────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
 
 
 @router.post(
@@ -123,10 +122,7 @@ start_time = time.time()
     summary="Receive and process trial data from MS1",
 )
 async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
-    """
-    Receive clinical trial data from MS1 and process.
-    NOW RETURNS PARSED CRITERIA IN RESPONSE!
-    """
+    """Receive clinical trial data from MS1 and process."""
     global received_trials, parsed_cache
 
     try:
@@ -147,16 +143,14 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
             "total_trials": count,
             "processed": [],
             "failed": [],
-            "parsed_criteria": {},  # ADD THIS - store parsed data
+            "parsed_criteria": {},
             "api_key_missing": False,
         }
 
         for trial in received_trials:
             nct_id = trial.get("nct_id", "UNKNOWN")
-
             try:
                 logger.info(f"⏳ Processing {nct_id}...")
-
                 trial_data = {
                     "nct_id": nct_id,
                     "title": trial.get("title", ""),
@@ -172,7 +166,7 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
                 # Cache the result
                 parsed_cache[nct_id] = parsed.model_dump()
 
-                # ADD THIS - include parsed data in response
+                # Include parsed data in response
                 processing_results["parsed_criteria"][nct_id] = parsed.model_dump()
 
                 logger.info(f"✅ Successfully processed {nct_id}")
@@ -225,8 +219,8 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
         )
 
         if (
-                processing_results["api_key_missing"]
-                and len(processing_results["processed"]) == 0
+            processing_results["api_key_missing"]
+            and len(processing_results["processed"]) == 0
         ):
             return {
                 "status": "error",
@@ -239,13 +233,13 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
                 "processing_results": processing_results,
             }
 
-        # NOW INCLUDE PARSED DATA IN RETURN
+        # Include parsed data in return
         return {
             "status": "received_and_processed",
             "count": count,
             "message": f"Successfully processed {len(processing_results['processed'])} trial(s)",
             "processing_results": processing_results,
-            "parsed_criteria": processing_results["parsed_criteria"],  # ADD THIS
+            "parsed_criteria": processing_results["parsed_criteria"],
         }
 
     except ValueError as e:
@@ -263,9 +257,9 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
         )
 
 
-# ────────────────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
 # Trial Parsing Endpoints
-# ────────────────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
 
 
 @router.get(
@@ -294,7 +288,6 @@ async def get_parsed_criteria(nct_id: str) -> ParsedCriteriaResponse:
     Returns:
         ParsedCriteriaResponse with inclusion/exclusion criteria rules
     """
-
     # Check cache first
     if nct_id in parsed_cache:
         logger.info(f"📦 Returning cached parsed criteria for {nct_id}")
@@ -304,19 +297,17 @@ async def get_parsed_criteria(nct_id: str) -> ParsedCriteriaResponse:
     try:
         cached = await service.get_from_db(nct_id)
         if cached:
-            logger.info(
-                f"📦 Returning database parsed criteria for {nct_id}"
-            )
+            logger.info(f"📦 Returning database parsed criteria for {nct_id}")
             parsed_cache[nct_id] = cached.model_dump()
             return cached
+
     except Exception as e:
         logger.warning(f"⚠️ Database lookup failed: {e}")
 
     logger.warning(f"⚠️ Trial {nct_id} not found")
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"Trial {nct_id} not found in database. "
-        "Send it from MS1 first.",
+        detail=f"Trial {nct_id} not found in database. Send it from MS1 first.",
     )
 
 
@@ -329,21 +320,15 @@ async def get_all_parsed() -> dict[str, Any]:
     """Get metadata for all parsed criteria in cache and database."""
     try:
         async with async_session_maker() as session:
-            result = await session.execute(
-                select(ParsedCriteriaDB)
-            )
+            result = await session.execute(select(ParsedCriteriaDB))
             all_records = result.scalars().all()
 
             return {
                 "total_parsed": len(all_records),
                 "parsed_trials": {
                     record.nct_id: {
-                        "inclusion_count": len(
-                            record.inclusion_criteria or []
-                        ),
-                        "exclusion_count": len(
-                            record.exclusion_criteria or []
-                        ),
+                        "inclusion_count": len(record.inclusion_criteria or []),
+                        "exclusion_count": len(record.exclusion_criteria or []),
                         "confidence": record.parsing_confidence,
                         "model_used": record.model_used,
                         "source": record.source,
@@ -351,6 +336,7 @@ async def get_all_parsed() -> dict[str, Any]:
                     for record in all_records
                 },
             }
+
     except Exception as e:
         logger.error(f"❌ Failed to retrieve all parsed: {e}")
         return {
@@ -359,9 +345,107 @@ async def get_all_parsed() -> dict[str, Any]:
             "error": str(e),
         }
 
-# ────────────────────────────────────────────────────────────────────
+
+@router.get(
+    "/trials",
+    tags=["Trial Parsing"],
+    summary="List all available trial NCT IDs",
+    response_description="List of NCT IDs available in the database",
+)
+async def list_all_trials() -> dict[str, Any]:
+    """
+    List all trial NCT IDs that have parsed criteria in the database.
+
+    Equivalent to: SELECT nct_id FROM parsed_criteria_db ORDER BY nct_id;
+
+    Returns:
+        Dictionary with list of NCT IDs and count
+
+    Example response:
+        {
+            "total_trials": 42,
+            "nct_ids": ["NCT00598351", "NCT01234567", ...],
+            "database": "parsed_criteria_db"
+        }
+    """
+    try:
+        async with async_session_maker() as session:
+            # Query all NCT IDs from database
+            result = await session.execute(
+                select(ParsedCriteriaDB.nct_id).order_by(ParsedCriteriaDB.nct_id)
+            )
+
+            nct_ids = [row[0] for row in result.all()]
+
+            logger.info(f"📋 Retrieved {len(nct_ids)} trial NCT IDs from database")
+
+            return {
+                "total_trials": len(nct_ids),
+                "nct_ids": nct_ids,
+                "database": "parsed_criteria_db",
+                "status": "success",
+            }
+
+    except Exception as e:
+        logger.error(f"❌ Failed to list trials: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve trial list: {str(e)}",
+        )
+
+
+@router.get(
+    "/trials/summary",
+    tags=["Trial Parsing"],
+    summary="List trials with summary information",
+)
+async def list_trials_with_summary() -> dict[str, Any]:
+    """
+    List all trials with summary information (NCT ID, rule counts, confidence).
+
+    Returns:
+        Dictionary with detailed trial information
+    """
+    try:
+        async with async_session_maker() as session:
+            result = await session.execute(
+                select(ParsedCriteriaDB).order_by(ParsedCriteriaDB.nct_id)
+            )
+
+            all_records = result.scalars().all()
+
+            trials_summary = [
+                {
+                    "nct_id": record.nct_id,
+                    "total_rules": record.total_rules_extracted,
+                    "inclusion_count": len(record.inclusion_criteria or []),
+                    "exclusion_count": len(record.exclusion_criteria or []),
+                    "confidence": record.parsing_confidence,
+                    "model": record.model_used,
+                    "parsed_at": record.parsing_timestamp.isoformat()
+                    if record.parsing_timestamp
+                    else None,
+                }
+                for record in all_records
+            ]
+
+            return {
+                "total_trials": len(trials_summary),
+                "trials": trials_summary,
+                "status": "success",
+            }
+
+    except Exception as e:
+        logger.error(f"❌ Failed to list trials with summary: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve trial summary: {str(e)}",
+        )
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # Health & Status Endpoints
-# ────────────────────────────────────────────────────────────────────
+# ════════════════════════════════════════════════════════════════════════════
 
 
 @router.get(
@@ -372,10 +456,7 @@ async def get_all_parsed() -> dict[str, Any]:
 async def health_check() -> HealthResponse:
     """Health check endpoint."""
     db_connected = await check_db_connection()
-
-    openai_status = (
-        "configured" if service.has_openai_key else "not_configured"
-    )
+    openai_status = "configured" if service.has_openai_key else "not_configured"
 
     return HealthResponse(
         status="healthy" if db_connected else "degraded",
@@ -396,10 +477,7 @@ async def health_check() -> HealthResponse:
 async def health_check_alt() -> HealthResponse:
     """Alternative health check endpoint."""
     db_connected = await check_db_connection()
-
-    openai_status = (
-        "configured" if service.has_openai_key else "not_configured"
-    )
+    openai_status = "configured" if service.has_openai_key else "not_configured"
 
     return HealthResponse(
         status="healthy" if db_connected else "degraded",
@@ -424,6 +502,8 @@ async def root() -> dict[str, Any]:
         "status": "running",
         "openai_configured": service.has_openai_key,
         "model": settings.OPENAI_MODEL if service.has_openai_key else "N/A",
-        "database_mode": "csv_import + openai" if service.has_openai_key else "csv_import_only",
+        "database_mode": "csv_import + openai"
+        if service.has_openai_key
+        else "csv_import_only",
         "docs": "/docs",
     }
