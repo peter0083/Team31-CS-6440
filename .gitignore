@@ -10,7 +10,7 @@ dist/
 .venv/
 src/ms2/.env
 .env.ui
-.env.prod
+.env.pr
 .env.*
 
 # Poetry
