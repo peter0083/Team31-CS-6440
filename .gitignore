@@ -10,6 +10,8 @@ dist/
 .venv/
 src/ms2/.env
 .env.ui
+.env.prod
+.env.*
 
 # Poetry
 # poetry.lock # need to make it available for GitHub Actions for builds

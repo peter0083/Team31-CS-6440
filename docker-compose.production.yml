@@ -1,12 +1,6 @@
 # Docker Compose for DigitalOcean Production Deployment
 # Use this file when deploying to DigitalOcean droplets
 
-# Before deploying, set environment variables:
-# export VITE_API_SEARCH_URL=https://your-domain.com/api/search-trials
-# export VITE_API_DISPLAY_URL=https://your-domain.com/api/display
-# export VITE_API_PHENOTYPE_URL=https://your-domain.com/api/phenotype
-# export API_BASE_DOMAIN=your-domain.com
-
 version: '3.8'
 
 services:
