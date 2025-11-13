@@ -1,9 +1,3 @@
-# src/ms4/trial.py - Fixed Version
-"""
-Trial class for evaluating patient-trial compatibility.
-Simplified version that works with the actual data structure.
-"""
-
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -20,7 +14,7 @@ class PatientMatch(BaseModel):
 
 class Trial:
     """Represents a clinical trial with eligibility criteria"""
-    
+
     def __init__(self, trial_data: Dict[str, Any]):
         self.nct_id = trial_data.get("nct_id", "UNKNOWN")
         self.inclusion_criteria = trial_data.get("inclusion_criteria", [])
@@ -54,11 +48,14 @@ class Trial:
     
     def _evaluate_patient(self, patient: Dict[str, Any]) -> Optional[PatientMatch]:
         """Evaluate a single patient"""
-        patient_id = patient.get("patient_id", "UNKNOWN")
-        
-        # For now, evaluate based on demographic criteria only
-        # since conditions/labs/medications are empty
-        
+        logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
+        logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
+
+        # patient data is nested under "general"
+        patient_id = patient.get("general", {}).get("patient_id", "UNKNOWN")
+
+        logger.info(f"[DEBUG] Extracted patient_id: {patient_id}")
+
         inclusion_met = 0
         inclusion_total = len(self.inclusion_criteria)
         
@@ -94,7 +91,8 @@ class Trial:
             
             # Demographic criteria (age, gender, etc.)
             if criterion_type == "demographic":
-                demographics = patient.get("demographics", {})
+                # demographics is also nested under general
+                demographics = patient.get("general", {}).get("demographics", {})
                 patient_value = demographics.get(field)
                 
                 if patient_value is None:
@@ -142,9 +140,21 @@ class Trial:
                 search_term = " ".join([str(x).lower() for x in identifier]) if identifier else str(value).lower()
                 
                 for cond in conditions:
-                    cond_str = str(cond).lower()
-                    if search_term in cond_str:
-                        return True
+                    if isinstance(cond, dict):
+                        # Check "description" column in MS3's conditions table
+                        description = cond.get("description", "").lower()
+                        code = cond.get("code", "").lower()
+
+                        # also check both description and code
+                        if search_term in description or search_term in code:
+                            logger.debug(f"[MATCH] Found '{search_term}' in condition: {description}")
+                            return True
+                    else:
+                        # Fallback for string conditions
+                        cond_str = str(cond).lower()
+                        if search_term in cond_str:
+                            return True
+
                 return False
             
             # Other criterion types - neutral (can't evaluate)

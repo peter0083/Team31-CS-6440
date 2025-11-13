@@ -58,7 +58,7 @@ _state: InitializationState = InitializationState()
 
 
 def get_db_connection() -> psycopg2.extensions.connection:
-    """Create a psycopg2 connection to PostgreSQL MS3 database."""
+    # use psycopg2 instead of SQLalchemy for direct connection
     return psycopg2.connect(
         host="postgres_ms3",
         port=5432,
@@ -69,7 +69,6 @@ def get_db_connection() -> psycopg2.extensions.connection:
 
 
 def calculate_age(birth_date_str: Optional[str]) -> Optional[int]:
-    """Calculate age from birth date string (YYYY-MM-DD format)."""
     try:
         if not birth_date_str:
             return None
@@ -82,7 +81,6 @@ def calculate_age(birth_date_str: Optional[str]) -> Optional[int]:
 
 
 def extract_race(resource: Dict[str, Any]) -> Optional[str]:
-    """Extract race from US Core Race extension."""
     try:
         for ext in resource.get("extension", []):
             if "us-core-race" in ext.get("url", ""):
@@ -95,7 +93,6 @@ def extract_race(resource: Dict[str, Any]) -> Optional[str]:
 
 
 def extract_ethnicity(resource: Dict[str, Any]) -> Optional[str]:
-    """Extract ethnicity from US Core Ethnicity extension."""
     try:
         for ext in resource.get("extension", []):
             if "us-core-ethnicity" in ext.get("url", ""):
@@ -108,7 +105,6 @@ def extract_ethnicity(resource: Dict[str, Any]) -> Optional[str]:
 
 
 async def load_postgres_data() -> None:
-    """Load FHIR data using psycopg2 (synchronous)."""
     try:
         with _state.lock:
             _state.is_loading = True
@@ -180,7 +176,6 @@ async def load_postgres_data() -> None:
 
 
 def _process_bundle(cursor: psycopg2.extensions.cursor, bundle: Dict[str, Any]) -> None:
-    """Process a FHIR bundle and insert records using psycopg2."""
     for entry in bundle.get("entry", []):
         resource: Dict[str, Any] = entry.get("resource", {})
         resource_type: str = resource.get("resourceType", "")
@@ -196,7 +191,6 @@ def _process_bundle(cursor: psycopg2.extensions.cursor, bundle: Dict[str, Any]) 
 
 
 def _insert_patient(cursor: psycopg2.extensions.cursor, resource: Dict[str, Any]) -> None:
-    """Insert patient record with calculated age and proper race/ethnicity extraction."""
     try:
         patient_id: Optional[str] = resource.get("id")
         if not patient_id:
@@ -251,7 +245,6 @@ def _insert_patient(cursor: psycopg2.extensions.cursor, resource: Dict[str, Any]
 
 
 def _insert_condition(cursor: psycopg2.extensions.cursor, resource: Dict[str, Any]) -> None:
-    """Insert condition record."""
     try:
         condition_id: Optional[str] = resource.get("id")
         if not condition_id:
@@ -292,7 +285,6 @@ def _insert_condition(cursor: psycopg2.extensions.cursor, resource: Dict[str, An
 
 
 def _insert_observation(cursor: psycopg2.extensions.cursor, resource: Dict[str, Any]) -> None:
-    """Insert observation record."""
     try:
         obs_id: Optional[str] = resource.get("id")
         if not obs_id:
@@ -342,7 +334,6 @@ def _insert_observation(cursor: psycopg2.extensions.cursor, resource: Dict[str, 
 
 
 def _insert_medication(cursor: psycopg2.extensions.cursor, resource: Dict[str, Any]) -> None:
-    """Insert medication record."""
     try:
         med_id: Optional[str] = resource.get("id")
         if not med_id:
@@ -392,5 +383,4 @@ def _insert_medication(cursor: psycopg2.extensions.cursor, resource: Dict[str, A
 
 
 def get_init_status() -> Dict[str, Any]:
-    """Get initialization status for API."""
     return _state.to_dict()

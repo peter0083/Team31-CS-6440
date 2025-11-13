@@ -183,6 +183,8 @@ class MedicalCodingService:
             "ckd": "N18",
             "depression": "F32",
             "rheumatoid arthritis": "M06",
+            "unspecified dementia": "F03",
+            "Malignant (primary) neoplasm, unspecified, (cancer)": "C80.1",
         }
 
     async def get_icd10_code(self, condition: str) -> Optional[str]:
