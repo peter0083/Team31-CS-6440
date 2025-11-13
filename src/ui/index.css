@@ -1554,7 +1554,7 @@ select.form-control {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px !important;
+  font-size: 80px !important;
   font-weight: bold;
   min-width: 32px;
   height: 32px;

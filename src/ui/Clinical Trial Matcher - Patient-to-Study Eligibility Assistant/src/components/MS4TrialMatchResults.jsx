@@ -202,10 +202,13 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
 
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "15px",
-            fontSize: "14px",
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '15px',
+              fontSize: '14px',
+              backgroundColor: '#1a1a1a',
+              padding: '16px',
+              borderRadius: '8px'
           }}
         >
           <div>
@@ -244,34 +247,12 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
           fontWeight: "500",
         }}
       >
-        ✅ Found <strong>{matchResults.length}</strong> {matchLabel} for trial{" "}
+        ✅ Found <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} match for trial <strong>{trialId}</strong>
         <strong>{trialId}</strong>
       </div>
 
-      {/* Sort Controls */}
-      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
-        <label style={{ fontSize: "14px", fontWeight: "500" }}>Sort by:</label>
-        <select
-          value={sortBy}
-          onChange={(e) => {
-            setSortBy(e.target.value);
-            setMatchResults(sortResults(matchResults));
-          }}
-          style={{
-            padding: "6px 10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          <option value="score">Compatibility Score</option>
-          <option value="percentage">Match Percentage</option>
-          <option value="name">Patient ID</option>
-        </select>
-      </div>
-
       {/* Patient Results List */}
-      <div>
+            <div>
         {matchResults.map((result) => {
           const isExpanded = expandedPatient === result.patient_id;
           const percentage = (result.match_percentage || 0).toFixed(0);
@@ -280,97 +261,86 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
 
           return (
             <div
-              key={result.patient_id}
+              key={result.patientid}
               style={{
-                border: "1px solid #ddd",
-                borderRadius: "6px",
-                padding: "15px",
-                marginBottom: "10px",
-                backgroundColor: isExpanded ? "#f8f9fa" : "#fff",
-                cursor: "pointer",
-                transition: "background-color 0.2s",
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                padding: '15px',
+                marginBottom: '10px',
+                backgroundColor: isExpanded ? '#f8f9fa' : '#fff',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s',
               }}
               onClick={() => togglePatientExpanded(result.patient_id)}
             >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr auto",
-                  alignItems: "center",
-                  gap: "15px",
-                }}
-              >
+              {/* Collapsed View */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: '15px' }}>
                 {/* Match Quality Badge */}
                 <div
                   style={{
-                    width: "60px",
-                    height: "60px",
-                    borderRadius: "50%",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: "bold",
-                    color: "#fff",
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    color: '#fff',
                     backgroundColor:
-                      qualityClass === "match-excellent"
-                        ? "#28a745"
-                        : qualityClass === "match-good"
-                        ? "#17a2b8"
-                        : qualityClass === "match-fair"
-                        ? "#ffc107"
-                        : "#dc3545",
+                      qualityClass === 'match-excellent' ? '#28a745' :
+                      qualityClass === 'match-good' ? '#17a2b8' :
+                      qualityClass === 'match-fair' ? '#ffc107' : '#dc3545',
                   }}
                 >
-                  <div style={{ fontSize: "20px" }}>{percentage}%</div>
-                  <div style={{ fontSize: "10px" }}>Match</div>
+                  <div style={{ fontSize: '20px' }}>{percentage}</div>
+                  <div style={{ fontSize: '10px' }}>Match</div>
                 </div>
 
                 {/* Patient Info */}
                 <div>
-                  <div style={{ fontWeight: "600", fontSize: "16px", marginBottom: "4px" }}>
+                  <div style={{ fontWeight: '600', fontSize: '16px', marginBottom: '4px', color: '#333' }}>
                     Patient {result.patient_id}
                   </div>
-                  <div style={{ fontSize: "13px", color: "#666" }}>
-                    {qualityLabel} • Score: {(result.match_percentage || 0).toFixed(2)}
+                  <div style={{ fontSize: '13px', color: '#666' }}>
+                    {qualityLabel} - Score: {(result.match_percentage || 0).toFixed(2)}
                   </div>
                 </div>
 
-                {/* Expand Button */}
-                <div style={{ fontSize: "20px" }}>
-                  {isExpanded ? "▼" : "▶"}
+                {/* Expand Arrow */}
+                <div style={{ fontSize: '18px', color: '#666' }}>
+                  {isExpanded ? '▼' : '▶'}
                 </div>
               </div>
 
               {/* Expanded Details */}
               {isExpanded && (
-                <div style={{ marginTop: "15px", paddingTop: "15px", borderTop: "1px solid #dee2e6" }}>
-                  <div style={{ fontSize: "14px", color: "#333" }}>
-                    <strong>Eligibility Criteria Met:</strong>
-                    <div style={{ color: "#666", marginTop: "8px" }}>
-                      Patient meets <strong>{percentage}%</strong> of the trial's eligibility
-                      criteria with a compatibility score of <strong>{(result.match_percentage || 0).toFixed(2)}</strong>.
-                    </div>
+                <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #dee2e6' }}>
+                  <div style={{ fontSize: '14px', color: '#333' }}>
+                    <strong>Eligibility Criteria Met</strong>
+                  </div>
+                  <div style={{ color: '#666', marginTop: '8px' }}>
+                    Patient meets <strong>{percentage}</strong>% of the trial's eligibility criteria.
                   </div>
 
-                  {/* Criteria Details */}
                   {result.criteria && result.criteria.length > 0 && (
-                    <div style={{ marginTop: "12px" }}>
-                      <strong>Matching Criteria:</strong>
-                      <div style={{ marginTop: "8px" }}>
+                    <div style={{ marginTop: '12px' }}>
+                      <strong>Matching Criteria</strong>
+                      <div style={{ marginTop: '8px' }}>
                         {result.criteria.map((criterion, idx) => (
                           <div
                             key={idx}
                             style={{
-                              padding: "8px",
-                              backgroundColor: "#f0f0f0",
-                              borderRadius: "3px",
-                              marginBottom: "6px",
-                              fontSize: "13px",
-                              fontFamily: "monospace",
+                              padding: '8px',
+                              backgroundColor: '#f0f0f0',
+                              borderRadius: '3px',
+                              marginBottom: '6px',
+                              fontSize: '13px',
+                              fontFamily: 'monospace',
+                              color: '#333',
                             }}
                           >
-                            ✓ {criterion.rawText || criterion.text}
+                            {criterion.rawText || criterion.text}
                           </div>
                         ))}
                       </div>
