@@ -1,15 +1,17 @@
 # Docker Compose for DigitalOcean Production Deployment
 # Use this file when deploying to DigitalOcean droplets
-# 
+
 # Before deploying, set environment variables:
 # export VITE_API_SEARCH_URL=https://your-domain.com/api/search-trials
 # export VITE_API_DISPLAY_URL=https://your-domain.com/api/display
+# export VITE_API_PHENOTYPE_URL=https://your-domain.com/api/phenotype
 # export API_BASE_DOMAIN=your-domain.com
 
 version: '3.8'
 
 services:
-  # PostgreSQL Database
+
+  # PostgreSQL Database for MS2
   postgres:
     image: postgres:15
     container_name: ms2_postgres
@@ -30,6 +32,28 @@ services:
       retries: 5
     restart: always
 
+  # PostgreSQL Database for MS3
+  postgres_ms3:
+    image: postgres:15
+    container_name: ms3_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ms3_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_ms3_data:/var/lib/postgresql/data
+      - ./init-ms3-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ms2_network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
   # MS1 Microservice - Clinical Trial Retriever
   ms1:
     build:
@@ -38,6 +62,8 @@ services:
     container_name: ms1_service
     ports:
       - '8001:8001'
+    environment:
+      - MS2_URL=http://ms2:8002/api/ms2/receive
     networks:
       - ms2_network
     restart: always
@@ -53,7 +79,7 @@ services:
     env_file:
       - src/ms2/.env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-postgres}@postgres:5432/ms2_db
       - MS1_URL=http://ms1:8001
       - ENVIRONMENT=production
       - LOG_LEVEL=info
@@ -72,7 +98,40 @@ services:
       start_period: 40s
       retries: 3
 
-  # MS4 Microservice
+  # MS3 Microservice - Patient Phenotype Builder
+  ms3:
+    build:
+      context: .
+      dockerfile: Dockerfile.ms3
+    container_name: ms3_service
+    ports:
+      - '8003:8003'
+    environment:
+      # Database Configuration
+      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-postgres}@postgres_ms3:5432/ms3_db
+      # Data Configuration
+      - DWH_PATH=/data/ms3/synthea
+      - SYNTHEA_FHIR_GLOB=/data/ms3/synthea/*.json
+      # API Configuration
+      - CORS_ALLOW_ORIGINS=https://${API_BASE_DOMAIN:-localhost}
+      - LOG_LEVEL=INFO
+      - FORCE_RELOAD=0
+    volumes:
+      - ./data/ms3/synthea:/data/ms3/synthea:ro
+    depends_on:
+      postgres_ms3:
+        condition: service_healthy
+    networks:
+      - ms2_network
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:8003/live || exit 1']
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
+  # MS4 Microservice - Trial Matcher
   ms4:
     build:
       context: .
@@ -88,6 +147,8 @@ services:
     volumes:
       - ./data/ms4:/app/data/ms4
     restart: always
+    depends_on:
+      - ms3
 
   # React Vite UI - Frontend Application (PRODUCTION)
   ui:
@@ -98,12 +159,14 @@ services:
         # Use environment variables set during deployment
         VITE_API_SEARCH_URL: ${VITE_API_SEARCH_URL:-http://localhost:8001/search-trials}
         VITE_API_DISPLAY_URL: ${VITE_API_DISPLAY_URL:-http://localhost:8002/api/ms2}
+        VITE_API_PHENOTYPE_URL: ${VITE_API_PHENOTYPE_URL:-http://localhost:8003/api/ms3}
     container_name: ui_service
     ports:
       - '5173:5173'
     depends_on:
       - ms1
       - ms2
+      - ms3
       - ms4
     networks:
       - ms2_network
@@ -117,6 +180,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_ms3_data:
     driver: local
 
 networks:
