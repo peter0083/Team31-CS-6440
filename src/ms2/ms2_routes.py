@@ -1,11 +1,3 @@
-"""MS2 API routes - Clinical Trial Criteria Parser
-
-Receives trial data from MS1, checks database first, then parses with OpenAI if needed.
-
-Ingests CSV mock data on startup.
-
-"""
-
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -111,11 +103,8 @@ router = APIRouter()
 service = MS2Service()
 start_time = time.time()
 
-# ════════════════════════════════════════════════════════════════════════════
+
 # MS1-to-MS2 Integration Endpoints
-# ════════════════════════════════════════════════════════════════════════════
-
-
 @router.post(
     "/receive",
     tags=["MS1 Integration"],
@@ -257,11 +246,8 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
         )
 
 
-# ════════════════════════════════════════════════════════════════════════════
+
 # Trial Parsing Endpoints
-# ════════════════════════════════════════════════════════════════════════════
-
-
 @router.get(
     "/parsed-criteria/{nct_id}",
     response_model=ParsedCriteriaResponse,
@@ -274,20 +260,6 @@ async def receive_trials_from_ms1(request: Request) -> dict[str, Any]:
     },
 )
 async def get_parsed_criteria(nct_id: str) -> ParsedCriteriaResponse:
-    """
-    Get parsed eligibility criteria for a trial.
-
-    Priority:
-    1. Check in-memory cache
-    2. Check PostgreSQL database
-    3. Return error if not found
-
-    Args:
-        nct_id: NCT identifier (e.g., NCT06129539)
-
-    Returns:
-        ParsedCriteriaResponse with inclusion/exclusion criteria rules
-    """
     # Check cache first
     if nct_id in parsed_cache:
         logger.info(f"📦 Returning cached parsed criteria for {nct_id}")
@@ -353,21 +325,6 @@ async def get_all_parsed() -> dict[str, Any]:
     response_description="List of NCT IDs available in the database",
 )
 async def list_all_trials() -> dict[str, Any]:
-    """
-    List all trial NCT IDs that have parsed criteria in the database.
-
-    Equivalent to: SELECT nct_id FROM parsed_criteria_db ORDER BY nct_id;
-
-    Returns:
-        Dictionary with list of NCT IDs and count
-
-    Example response:
-        {
-            "total_trials": 42,
-            "nct_ids": ["NCT00598351", "NCT01234567", ...],
-            "database": "parsed_criteria_db"
-        }
-    """
     try:
         async with async_session_maker() as session:
             # Query all NCT IDs from database
@@ -400,12 +357,6 @@ async def list_all_trials() -> dict[str, Any]:
     summary="List trials with summary information",
 )
 async def list_trials_with_summary() -> dict[str, Any]:
-    """
-    List all trials with summary information (NCT ID, rule counts, confidence).
-
-    Returns:
-        Dictionary with detailed trial information
-    """
     try:
         async with async_session_maker() as session:
             result = await session.execute(
@@ -443,11 +394,7 @@ async def list_trials_with_summary() -> dict[str, Any]:
         )
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# Health & Status Endpoints
-# ════════════════════════════════════════════════════════════════════════════
-
-
+# Health and debug endpoints
 @router.get(
     "/health",
     response_model=HealthResponse,

@@ -1,12 +1,3 @@
-# ms4_orchestrator.py
-"""
-MS4 Orchestrator Module - Updated Version
-
-Handles HTTP communication with MS2 (Trial Criteria) and MS3 (Patient Phenotypes)
-Now supports using cached patient data to avoid redundant MS3 fetches
-Transforms data formats and manages the complete matching workflow
-"""
-
 import asyncio
 import logging
 import os
@@ -19,10 +10,6 @@ from fastapi import HTTPException
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# ============================================================================
-# Configuration
-# ============================================================================
-
 MS2_BASE_URL = os.getenv("MS2_BASE_URL", "http://ms2:8002")
 MS3_BASE_URL = os.getenv("MS3_BASE_URL", "http://ms3:8003")
 
@@ -32,23 +19,7 @@ REQUEST_TIMEOUT = 30
 # Default meet percentage threshold (minimum % of criteria to meet)
 DEFAULT_MEET_PERCENTAGE = 45
 
-# ============================================================================
-# HTTP Client Functions
-# ============================================================================
-
 async def fetch_trial_criteria(nct_id: str) -> Dict[str, Any]:
-    """
-    Fetch parsed trial criteria from MS2.
-    
-    Args:
-        nct_id: Clinical trial ID (e.g., 'NCT05123456')
-    
-    Returns:
-        Trial criteria object with inclusion/exclusion rules
-    
-    Raises:
-        HTTPException: If MS2 request fails or NCT ID not found
-    """
     try:
         url = f"{MS2_BASE_URL}/api/ms2/parsed-criteria/{nct_id}"
         logger.info(f"[MS2 FETCH] Fetching trial criteria: {url}")
@@ -84,18 +55,6 @@ async def fetch_trial_criteria(nct_id: str) -> Dict[str, Any]:
 
 
 async def fetch_patient_phenotype(patient_id: str) -> Dict[str, Any]:
-    """
-    Fetch single patient phenotype from MS3.
-    
-    Args:
-        patient_id: Patient ID (e.g., 'patient-001')
-    
-    Returns:
-        Patient phenotype object with demographics, conditions, labs, medications, etc.
-    
-    Raises:
-        HTTPException: If MS3 request fails or patient not found
-    """
     try:
         url = f"{MS3_BASE_URL}/api/ms3/patient-phenotype/{patient_id}"
         logger.debug(f"[MS3 FETCH] Fetching patient phenotype: {url}")
@@ -131,18 +90,6 @@ async def fetch_patient_phenotype(patient_id: str) -> Dict[str, Any]:
 
 
 async def fetch_patient_phenotypes(patient_ids: List[str]) -> List[Dict[str, Any]]:
-    """
-    Fetch multiple patient phenotypes from MS3 concurrently.
-    
-    Args:
-        patient_ids: List of patient IDs
-    
-    Returns:
-        List of patient phenotype objects
-    
-    Raises:
-        HTTPException: If any fetch fails (partial failures included)
-    """
     logger.info(f"[MS3 FETCH] Fetching {len(patient_ids)} patient phenotypes from MS3")
     
     if not patient_ids:
@@ -188,40 +135,7 @@ async def fetch_patient_phenotypes(patient_ids: List[str]) -> List[Dict[str, Any
     return patients
 
 
-# ============================================================================
-# Data Transformation Functions
-# ============================================================================
-
 def transform_ms3_phenotype_for_ms4(phenotype: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Transform MS3 phenotype format to MS4 expected format.
-    
-    MS3 output format:
-        {
-            "patient_id": "...",
-            "demographics": {...},
-            "conditions": [...],
-            "lab_results": [...],
-            ...
-        }
-    
-    MS4 expected format:
-        {
-            "general": {
-                "patient_id": "...",
-                "demographics": {...}
-            },
-            "conditions": [...],
-            "lab_results": [...],
-            ...
-        }
-    
-    Args:
-        phenotype: MS3 phenotype output
-    
-    Returns:
-        Transformed phenotype for MS4 matching
-    """
     logger.debug(f"[TRANSFORM] Transforming phenotype for patient {phenotype.get('patient_id', 'unknown')}")
     
     transformed: Dict[str, Any] = {
@@ -244,15 +158,6 @@ def transform_ms3_phenotype_for_ms4(phenotype: Dict[str, Any]) -> Dict[str, Any]
 async def fetch_and_transform_patients(
     patient_ids: List[str]
 ) -> List[Dict[str, Any]]:
-    """
-    Fetch patients from MS3 and transform to MS4 format.
-    
-    Args:
-        patient_ids: List of patient IDs
-    
-    Returns:
-        List of transformed patient phenotypes
-    """
     logger.info(f"[TRANSFORM] Fetching and transforming {len(patient_ids)} patients")
     phenotypes = await fetch_patient_phenotypes(patient_ids)
     
@@ -265,21 +170,7 @@ async def fetch_and_transform_patients(
     return transformed
 
 
-# ============================================================================
-# NEW: Cached Patient Functions
-# ============================================================================
-
 def transform_cached_patient_for_ms4(cached_phenotype: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Transform cached patient phenotype to MS4 expected format.
-    Handles data already loaded in memory from MS3 cache.
-    
-    Args:
-        cached_phenotype: Patient phenotype from cache
-    
-    Returns:
-        Transformed phenotype for MS4 matching
-    """
     patient_id = cached_phenotype.get("patient_id")
     logger.debug(f"[CACHE TRANSFORM] Transforming cached patient {patient_id}")
     
@@ -310,17 +201,6 @@ async def get_patients_from_cache(
     patient_ids: List[str],
     cached_patients: Dict[str, Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
-    """
-    Get and transform patients from in-memory cache instead of fetching from MS3.
-    This is MUCH faster than fetching from MS3 for each request.
-    
-    Args:
-        patient_ids: List of patient IDs to retrieve
-        cached_patients: Dictionary of patient_id -> phenotype (from PatientCache)
-    
-    Returns:
-        List of transformed patient phenotypes ready for matching
-    """
     logger.info(f"[CACHE] Retrieving {len(patient_ids)} patients from in-memory cache")
     
     transformed_patients: List[Dict[str, Any]] = []
@@ -341,17 +221,7 @@ async def get_patients_from_cache(
     return transformed_patients
 
 
-# ============================================================================
-# Health Check Functions
-# ============================================================================
-
 async def check_ms2_health() -> Dict[str, Any]:
-    """
-    Check MS2 service health.
-    
-    Returns:
-        Health status object
-    """
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             response = await client.get(f"{MS2_BASE_URL}/health")
@@ -367,12 +237,6 @@ async def check_ms2_health() -> Dict[str, Any]:
 
 
 async def check_ms3_health() -> Dict[str, Any]:
-    """
-    Check MS3 service health.
-    
-    Returns:
-        Health status object
-    """
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             response = await client.get(f"{MS3_BASE_URL}/live")
@@ -389,12 +253,6 @@ async def check_ms3_health() -> Dict[str, Any]:
 
 
 async def check_services_health() -> Dict[str, Dict[str, Any]]:
-    """
-    Check health of both MS2 and MS3.
-    
-    Returns:
-        Health status for both services
-    """
     logger.info("[HEALTH] Checking health of MS2 and MS3")
     ms2_health = await check_ms2_health()
     ms3_health = await check_ms3_health()
@@ -405,36 +263,12 @@ async def check_services_health() -> Dict[str, Dict[str, Any]]:
     }
 
 
-# ============================================================================
-# Main Orchestration Functions
-# ============================================================================
-
 async def match_trial_to_patients(
     nct_id: str,
     patient_ids: List[str],
     cached_patients: Optional[Dict[str, Dict[str, Any]]] = None,
     meet_percentage: int = DEFAULT_MEET_PERCENTAGE
 ) -> Dict[str, Any]:
-    """
-    Main orchestration function: Fetch trial and patients, then match.
-    
-    OPTIMIZATION: If cached_patients is provided, uses in-memory data
-    instead of fetching from MS3. This provides massive performance benefit
-    for repeated matching requests.
-    
-    Args:
-        nct_id: Clinical trial ID
-        patient_ids: List of patient IDs to match
-        cached_patients: Optional dict of patient_id -> phenotype from cache
-                        If provided, avoids MS3 fetch (MUCH faster!)
-        meet_percentage: Minimum percentage of criteria to meet (default: 45)
-    
-    Returns:
-        Matching results with ranked patients
-    
-    Raises:
-        HTTPException: If MS2 fetch fails or other errors occur
-    """
     logger.info(f"[MATCH] Starting trial match for {nct_id}")
     logger.info(f"[MATCH] Patients: {len(patient_ids)}, Using cache: {cached_patients is not None}")
     
@@ -493,18 +327,6 @@ async def match_trial_to_single_patient(
     cached_patients: Optional[Dict[str, Dict[str, Any]]] = None,
     meet_percentage: int = DEFAULT_MEET_PERCENTAGE
 ) -> Dict[str, Any]:
-    """
-    Match a single patient to a trial.
-    
-    Args:
-        nct_id: Clinical trial ID
-        patient_id: Patient ID to match
-        cached_patients: Optional cache dict for faster lookup
-        meet_percentage: Minimum percentage of criteria to meet (default: 45)
-    
-    Returns:
-        Matching results for single patient
-    """
     logger.info(f"[MATCH SINGLE] Starting single patient match: {patient_id} -> {nct_id}")
     
     result = await match_trial_to_patients(
@@ -517,10 +339,6 @@ async def match_trial_to_single_patient(
     return result
 
 
-# ============================================================================
-# Batch Operations
-# ============================================================================
-
 async def match_trial_to_multiple_patients_batch(
     nct_id: str,
     patient_ids: List[str],
@@ -528,21 +346,6 @@ async def match_trial_to_multiple_patients_batch(
     batch_size: int = 10,
     meet_percentage: int = DEFAULT_MEET_PERCENTAGE
 ) -> Dict[str, Any]:
-    """
-    Match trial to multiple patients in batches (for very large patient lists).
-    
-    Uses cache if provided, otherwise fetches from MS3.
-    
-    Args:
-        nct_id: Clinical trial ID
-        patient_ids: List of patient IDs
-        cached_patients: Optional cache dict (recommended for performance)
-        batch_size: Number of patients per batch
-        meet_percentage: Minimum percentage of criteria to meet
-    
-    Returns:
-        Aggregated matching results
-    """
     logger.info(f"[BATCH] Starting batch matching for {len(patient_ids)} patients")
     logger.info(f"[BATCH] Batch size: {batch_size}, Using cache: {cached_patients is not None}")
     
@@ -589,10 +392,6 @@ async def match_trial_to_multiple_patients_batch(
         "batch_errors": failed_batches if failed_batches else None
     }
 
-
-# ============================================================================
-# Utility Functions
-# ============================================================================
 
 def validate_patient_ids(patient_ids: List[str]) -> bool:
     """Validate patient IDs list."""

@@ -1,9 +1,3 @@
-# src/ms4/patient_cache.py - Fixed Version
-"""
-Patient caching system for MS4.
-Loads all patients from MS3 at startup and stores in memory.
-"""
-
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
@@ -14,15 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class PatientCache:
-    """In-memory cache of all patients for fast searching"""
+    """cache all MS3 patients into memory for faster matching"""
     
     def __init__(self, ms3_base_url: str = "http://ms3:8003"):
-        """
-        Initialize patient cache.
-        
-        Args:
-            ms3_base_url: Base URL for MS3 service
-        """
         self.ms3_base_url = ms3_base_url
         self.patients: Dict[str, Dict[str, Any]] = {}  # patient_id -> phenotype
         self.patient_ids: List[str] = []
@@ -31,14 +19,6 @@ class PatientCache:
         self.load_time_seconds: float = 0.0
     
     async def load_all_patients(self) -> bool:
-        """
-        Load all patients from MS3 API in bulk.
-        
-        Called during MS4 startup via lifespan context manager.
-        
-        Returns:
-            True if successful, False otherwise
-        """
         import time
         start_time = time.time()
         
@@ -82,12 +62,6 @@ class PatientCache:
             return False
     
     async def _fetch_all_patient_ids(self) -> List[str]:
-        """
-        Fetch all patient IDs from MS3 using pagination.
-        
-        Returns:
-            List of all patient IDs
-        """
         patient_ids: List[str] = []
         offset = 0
         limit = 100
@@ -135,15 +109,6 @@ class PatientCache:
         patient_ids: List[str],
         batch_size: int = 10
     ) -> None:
-        """
-        Fetch phenotypes in batches to avoid overwhelming MS3.
-        
-        Uses concurrent requests within each batch.
-        
-        Args:
-            patient_ids: List of all patient IDs
-            batch_size: Number of concurrent requests per batch
-        """
         total = len(patient_ids)
         successful = 0
         failed = 0
@@ -191,67 +156,24 @@ class PatientCache:
         client: httpx.AsyncClient,
         patient_id: str
     ) -> Dict[str, Any]:
-        """
-        Fetch single patient phenotype from MS3.
-        
-        Args:
-            client: HTTPX async client
-            patient_id: Patient ID
-        
-        Returns:
-            Patient phenotype dictionary
-        """
         url = f"{self.ms3_base_url}/api/ms3/patients/{patient_id}/phenotype"
         response = await client.get(url)
         response.raise_for_status()
         return response.json()
     
     def get_patient(self, patient_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Get single cached patient phenotype.
-        
-        Args:
-            patient_id: Patient ID
-        
-        Returns:
-            Patient phenotype or None if not found
-        """
         return self.patients.get(patient_id)
     
     def get_all_patients(self) -> List[Dict[str, Any]]:
-        """
-        Get all cached patients.
-        
-        Returns:
-            List of all patient phenotypes
-        """
         return list(self.patients.values())
     
     def get_all_patient_ids(self) -> List[str]:
-        """
-        Get all patient IDs.
-        
-        Returns:
-            List of all patient IDs
-        """
         return self.patient_ids.copy()
     
     def get_patient_count(self) -> int:
-        """
-        Get number of loaded patients.
-        
-        Returns:
-            Number of patients in cache
-        """
         return len(self.patients)
     
     def get_cache_stats(self) -> Dict[str, Any]:
-        """
-        Get cache statistics.
-        
-        Returns:
-            Dictionary with cache stats
-        """
         return {
             "is_loaded": self.is_loaded,
             "total_patients": len(self.patients),
@@ -264,12 +186,6 @@ class PatientCache:
 # Global cache instance
 _patient_cache: PatientCache = PatientCache()
 
-
+# for debugging
 def get_patient_cache() -> PatientCache:
-    """
-    Get the global patient cache instance.
-    
-    Returns:
-        Global PatientCache instance
-    """
     return _patient_cache

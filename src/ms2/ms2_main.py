@@ -1,8 +1,3 @@
-"""Fixed ms2_main.py - CSVDataLoader with proper CSV parsing"""
-
-# The issue: CSVDataLoader was trying to load row-by-row rules
-# Solution: Group rules by nct_id THEN save as structured inclusion/exclusion criteria
-
 import csv
 import json
 import logging
@@ -30,25 +25,8 @@ logger = logging.getLogger(__name__)
 
 
 class CSVDataLoader:
-    """Load and ingest parsed criteria from CSV files."""
-
     @staticmethod
     async def load_csv_into_db(csv_path: str) -> int:
-        """
-        Load parsed criteria from CSV into PostgreSQL database.
-        
-        CSV Format (rule-level):
-            nct_id, rule_id, rule_type, type, identifier, field, operator, value, unit, raw_text, confidence
-        
-        Database Format (trial-level):
-            nct_id: inclusion_criteria[{...}], exclusion_criteria[{...}]
-        
-        Args:
-            csv_path: Path to CSV file
-            
-        Returns:
-            Number of TRIALS (not rules) loaded
-        """
         csv_file = Path(csv_path)
 
         if not csv_file.exists():
@@ -163,7 +141,7 @@ class CSVDataLoader:
 
 
 class MedicalCodingService:
-    """Service for mapping medical terms to ICD-10 codes."""
+    """map medical terms to ICD-10 codes."""
 
     def __init__(self) -> None:
         self.icd10_cache = {
@@ -206,7 +184,7 @@ class MedicalCodingService:
 
 
 class MS2Service:
-    """LLM-powered clinical trial criteria parser with CSV fallback."""
+    """call LLM to parse"""
 
     def __init__(self) -> None:
         self.has_openai_key = bool(settings.OPENAI_API_KEY and settings.OPENAI_API_KEY.strip())
@@ -321,9 +299,6 @@ Your task: Parse free-text eligibility criteria into structured, machine-readabl
         nct_id: str,
         trial_data: TrialDataFromMS1,
     ) -> ParsedCriteriaResponse:
-        """
-        Process a trial: check database first, then OpenAI if needed.
-        """
         logger.info(f"🔍 Checking database for {nct_id}...")
         cached = await self.get_from_db(nct_id)
 
@@ -339,7 +314,7 @@ Your task: Parse free-text eligibility criteria into structured, machine-readabl
 
 
 def create_app() -> FastAPI:
-    """Create and configure FastAPI application."""
+    """Create FastAPI app"""
     from src.ms2.ms2_routes import lifespan, router
 
     app = FastAPI(

@@ -1,5 +1,3 @@
-"""Configuration settings for MS2 microservice: clinical trial criteria parser."""
-
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
@@ -10,8 +8,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 CONFIG_DIR = Path(__file__).parent
 
 class Settings(BaseSettings):
-    """Application settings."""
-
     model_config = SettingsConfigDict(
         env_file=str(CONFIG_DIR / ".env"),
         env_file_encoding="utf-8",
@@ -60,7 +56,6 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
-    """Get cached settings instance."""
     try:
         return Settings() # type: ignore[call-arg]
 

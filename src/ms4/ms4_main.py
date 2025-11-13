@@ -1,18 +1,4 @@
-# src/ms4/ms4_main.py
-"""
-MS4 Main Application - Updated Version
-
-Updated MS4 main application that:
-1. Waits for MS3 initialization
-2. Loads all patient data into memory cache at startup
-3. Uses cached data for trial matching (avoids redundant MS3 fetches)
-4. Provides efficient batch trial-to-patient matching
-
-Key improvement: Passes cached patient data to orchestrator for blazing-fast matching
-"""
-
 import asyncio
-import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -25,7 +11,6 @@ from pydantic import BaseModel
 
 from src.ms4.ms4_orchestrator import match_trial_to_patients
 from src.ms4.patient_cache import get_patient_cache
-from src.ms4.trial import Trial
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -34,39 +19,18 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 
-# ============================================================================
-# Configuration
-# ============================================================================
-
 MS3_BASE_URL = os.getenv("MS3_BASE_URL", "http://ms3:8003")
 MS3_INIT_CHECK_TIMEOUT = int(os.getenv("MS3_INIT_CHECK_TIMEOUT", "120"))  # 2 minutes
 MS3_INIT_CHECK_INTERVAL = int(os.getenv("MS3_INIT_CHECK_INTERVAL", "5"))  # Check every 5 seconds
 MS4_STARTUP_RETRIES = int(os.getenv("MS4_STARTUP_RETRIES", "3"))
 MS4_STARTUP_RETRY_DELAY = int(os.getenv("MS4_STARTUP_RETRY_DELAY", "5"))
 
-# ============================================================================
-# MS3 Initialization Status Check
-# ============================================================================
 
 async def wait_for_ms3_initialization(
     ms3_base_url: str,
     timeout_seconds: int = MS3_INIT_CHECK_TIMEOUT,
     check_interval: int = MS3_INIT_CHECK_INTERVAL
 ) -> bool:
-    """
-    Wait for MS3 to complete its initialization.
-    
-    Polls the MS3 initialization status endpoint until it reports success
-    or timeout is reached.
-    
-    Args:
-        ms3_base_url: Base URL for MS3 service
-        timeout_seconds: Maximum time to wait (default: 120 seconds)
-        check_interval: Seconds between status checks (default: 5 seconds)
-    
-    Returns:
-        True if MS3 initialization is complete, False if timeout
-    """
     logger.info("\n" + "=" * 80)
     logger.info("[MS3 WAIT] Waiting for MS3 to complete initialization...")
     logger.info(f"[MS3 WAIT] Timeout: {timeout_seconds}s, Check interval: {check_interval}s")
@@ -131,29 +95,11 @@ async def wait_for_ms3_initialization(
             await asyncio.sleep(check_interval)
 
 
-# ============================================================================
-# Patient Cache Loading with Retry
-# ============================================================================
-
 async def load_patients_with_retry(
     cache,
     max_attempts: int = 3,
     initial_delay: int = 5
 ) -> bool:
-    """
-    Load patients from MS3 with retry logic.
-    
-    Uses exponential backoff: first attempt immediately, then wait
-    initial_delay, 2*initial_delay, 3*initial_delay, etc.
-    
-    Args:
-        cache: PatientCache instance
-        max_attempts: Number of retry attempts
-        initial_delay: Initial delay between retries in seconds
-    
-    Returns:
-        True if successful, False if all attempts fail
-    """
     for attempt in range(1, max_attempts + 1):
         logger.info(f"\n[RETRY] Load attempt {attempt}/{max_attempts}")
         
@@ -195,26 +141,15 @@ async def load_patients_with_retry(
     return False
 
 
-# ============================================================================
-# Lifespan - Wait for MS3, then load patients
-# ============================================================================
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    FastAPI lifespan context manager with MS3 initialization check.
-    
-    1. First: Wait for MS3 to complete its initialization
-    2. Then: Load patient data from MS3 with retries
-    3. Finally: Application is ready to accept requests
+    load MS3 data into memory in MS4 as soon as MS3 is ready
     """
     logger.info("\n" + "=" * 80)
     logger.info("MS4 APPLICATION STARTING")
     logger.info("=" * 80)
-    
-    # ========================================================================
-    # Phase 1: Wait for MS3 initialization
-    # ========================================================================
+
     
     ms3_ready = await wait_for_ms3_initialization(
         ms3_base_url=MS3_BASE_URL,
@@ -225,10 +160,7 @@ async def lifespan(app: FastAPI):
     if not ms3_ready:
         logger.warning("\n[STARTUP] MS3 initialization check timed out")
         logger.warning("[STARTUP] MS4 will attempt to load patients anyway...")
-    
-    # ========================================================================
-    # Phase 2: Load patient cache from MS3 (with retries)
-    # ========================================================================
+
     
     logger.info("\n[STARTUP] Initializing patient cache from MS3...")
     logger.info(f"[STARTUP] Retries enabled: {MS4_STARTUP_RETRIES} attempts, "
@@ -246,10 +178,6 @@ async def lifespan(app: FastAPI):
         max_attempts=MS4_STARTUP_RETRIES,
         initial_delay=MS4_STARTUP_RETRY_DELAY
     )
-    
-    # ========================================================================
-    # Phase 3: Report final status
-    # ========================================================================
     
     if success:
         stats = cache.get_cache_stats()
@@ -277,10 +205,6 @@ async def lifespan(app: FastAPI):
     logger.info("\n[SHUTDOWN] MS4 shutting down...")
 
 
-# ============================================================================
-# FastAPI App Setup
-# ============================================================================
-
 app = FastAPI(
     title="MS4 - Clinical Trial Patient Matcher",
     description="Matches patients to clinical trials with MS3 initialization awareness and cached patient data",
@@ -297,9 +221,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ============================================================================
-# Pydantic Models
-# ============================================================================
 
 class TrialMatchRequest(BaseModel):
     """Request model for trial matching"""
@@ -315,11 +236,7 @@ class PatientsAndTrialLegacy(BaseModel):
     rawpatients: str
     rawtrial: str
 
-
-# ============================================================================
-# Health & Status Endpoints
-# ============================================================================
-
+# debug endpoints
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
@@ -378,36 +295,8 @@ async def get_info():
     }
 
 
-# ============================================================================
-# Main Matching Endpoint - WITH CACHE OPTIMIZATION
-# ============================================================================
-
 @app.post("/match-trial")
 async def match_trial_endpoint(request: TrialMatchRequest):
-    """
-    PRIMARY ENDPOINT: Match trial to all cached patients with ranking.
-    
-    KEY OPTIMIZATION: Uses in-memory cached patient data instead of
-    fetching from MS3 for each request. This provides massive performance
-    improvement when matching against 1000+ patients.
-    
-    Flow:
-    1. Get all cached patients (1,097 in your case)
-    2. Fetch trial criteria from MS2
-    3. Evaluate each cached patient against trial criteria
-    4. Score and rank results
-    5. Return ranked matches
-    
-    Parameters:
-        nct_id: Clinical trial ID (required)
-        sort_by: "match_percentage" or "patient_id" (default: "match_percentage")
-        order: "ascending" or "descending" (default: "descending")
-        limit: Max number of results to return (default: all)
-        min_match: Minimum match percentage threshold (0-100)
-    
-    Returns:
-        Ranked list of matching patients with scores
-    """
     cache = get_patient_cache()
     
     # Check if cache is loaded
@@ -524,60 +413,6 @@ async def debug_patient_structure():
         }
     }
 
-
-# ============================================================================
-# Legacy Endpoint
-# ============================================================================
-
-@app.post("/match")
-async def match_legacy(payload: PatientsAndTrialLegacy):
-    """LEGACY ENDPOINT: Kept for backward compatibility"""
-    logger.info("[LEGACY MATCH] Received request")
-    
-    try:
-        patients = json.loads(payload.rawpatients)
-    except json.JSONDecodeError as e:
-        logger.error(f"[LEGACY MATCH] Invalid patients JSON: {e}")
-        raise HTTPException(
-            status_code=400,
-            detail=f"Patients is not valid JSON: {e}"
-        )
-    
-    try:
-        trial = json.loads(payload.rawtrial)
-    except json.JSONDecodeError as e:
-        logger.error(f"[LEGACY MATCH] Invalid trial JSON: {e}")
-        raise HTTPException(
-            status_code=400,
-            detail=f"Trial is not valid JSON: {e}"
-        )
-    
-    logger.info(f"[LEGACY MATCH] Evaluating {len(patients)} patients")
-    
-    try:
-        trial_obj = Trial(trial)
-        trial_results = trial_obj.evaluate(patients)
-    
-    except ZeroDivisionError as e:
-        return {
-            "error": "Trial has no weight criteria",
-            "message": str(e),
-            "matched_patients": []
-        }
-    
-    except Exception as e:
-        logger.error(f"[LEGACY MATCH] Error: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error evaluating trial: {str(e)}"
-        )
-    
-    return {"results": trial_results}
-
-
-# ============================================================================
-# Run Server
-# ============================================================================
 
 if __name__ == "__main__":
     import uvicorn
