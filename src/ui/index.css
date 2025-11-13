@@ -1568,3 +1568,19 @@ select.form-control {
 .toggle-icon:hover {
   transform: scale(1.2);
 }
+
+/* for condition drop down */
+.select-input {
+  background-color: var(--color-surface);  /* Light background */
+  color: var(--color-text);                /* Dark text */
+  border: 1px solid var(--color-card-border);
+  padding: var(--space-8);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.select-input option {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}

@@ -28,47 +28,25 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
       patients: patients.length,
     });
 
-      // debug code
-      console.log('=== PATIENTS DATA STRUCTURE ===');
-      console.log('First patient:', patients[0]);
-      console.log('Patient keys:', Object.keys(patients[0] || {}));
-      // end of debug code
+      if (trialId) {
+          fetchMatchResults();
+      }
+  }, [trialId]);
 
-    if (trialId && patients.length > 0) {
-      fetchMatchResults();
-    }
-  }, [trialId, patients]);
 
   const fetchMatchResults = async () => {
     try {
-      // Prepare patients with full phenotype data
-      const enrichedPatients = patients.map(patient => ({
-        patient_id: patient.patient_id || patient.id,
-        id: patient.id || patient.patient_id,
-        general: patient.general || {
-          demographics: patient.demographics || {}
-        },
-        conditions: patient.conditions || [],
-        lab_results: patient.lab_results || [],
-        observations: patient.observations || [],
-        medications: patient.medications || [],
-        name: patient.name
-      }));
+        const payload = {
+          nct_id: trialId,
+          limit: 10,
+        };
 
-      const trialObject = { nct_id: trialId, official_title: trialTitle };
-      const payload = {
-        rawpatients: JSON.stringify(enrichedPatients),
-        rawtrial: JSON.stringify(trialObject)
-      };
+        // pay load debug
+        console.log("🚀 Full Payload Object:", payload);
+        console.log("🚀 Payload as JSON:", JSON.stringify(payload));
+        console.log("🚀 trialId value:", trialId, "type:", typeof trialId);
 
-    // Debug: Log the exact payload
-    console.log('=== PAYLOAD DEBUG ===');
-    console.log('Payload:', payload);
-    console.log('rawpatients length:', payload.rawpatients.length);
-    console.log('rawtrial length:', payload.rawtrial.length);
-    console.log('Stringified:', JSON.stringify(payload));
-
-    const response = await fetch(`${API_MS4_URL}/match`, {
+    const response = await fetch(`${API_MS4_URL}/match-trial`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -83,7 +61,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
       const data = await response.json();
       console.log("📊 Match results:", data);
 
-      const results = data.results || data.matches || data.data || [];
+      const results = data.ranked_results || [];
       console.log("✅ Parsed results:", results);
 
       const sorted = sortResults(results);
@@ -96,20 +74,36 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
     }
   };
 
+
   const sortResults = (results) => {
-    const sorted = [...results];
-    switch (sortBy) {
-      case "percentage":
-        return sorted.sort((a, b) => (b.percentage || 0) - (a.percentage || 0));
-      case "name":
-        return sorted.sort((a, b) =>
-          (a.patient_id || "").localeCompare(b.patient_id || "")
-        );
-      case "score":
-      default:
-        return sorted.sort((a, b) => (b.score || 0) - (a.score || 0));
+  // ✅ Add safety check
+  if (!Array.isArray(results)) {
+    console.warn("sortResults received non-array:", results);
+    return [];
+  }
+
+  const sorted = [...results];
+  if (!Array.isArray(results)) {
+      console.warn("sortResults received non-array:", results);
+      return [];
+    }
+
+  switch (sortBy) {
+    case "percentage":
+      return sorted.sort(
+        (a, b) => (b.match_percentage || 0) - (a.match_percentage || 0)
+      );
+    case "name":
+      return sorted.sort((a, b) =>
+        (a.patient_id || "").localeCompare(b.patient_id || "")
+      );
+    case "rank":
+    default:
+      return sorted.sort((a, b) => (a.rank || 999) - (b.rank || 999));
     }
   };
+
+
 
   const togglePatientExpanded = (patientId) => {
     setExpandedPatient(expandedPatient === patientId ? null : patientId);
@@ -155,22 +149,6 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
     );
   }
 
-  // No patients state
-  if (!patients.length) {
-    return (
-      <div
-        style={{
-          padding: "20px",
-          backgroundColor: "#e2e3e5",
-          color: "#383d41",
-          borderRadius: "4px",
-          marginTop: "20px",
-        }}
-      >
-        No patient data available for matching.
-      </div>
-    );
-  }
 
   // No results state
   if (matchResults.length === 0) {
@@ -296,7 +274,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
       <div>
         {matchResults.map((result) => {
           const isExpanded = expandedPatient === result.patient_id;
-          const percentage = (result.percentage || 0).toFixed(0);
+          const percentage = (result.match_percentage || 0).toFixed(0);
           const qualityClass = getMatchQualityClass(percentage);
           const qualityLabel = getMatchQualityLabel(percentage);
 
@@ -354,7 +332,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                     Patient {result.patient_id}
                   </div>
                   <div style={{ fontSize: "13px", color: "#666" }}>
-                    {qualityLabel} • Score: {(result.score || 0).toFixed(2)}
+                    {qualityLabel} • Score: {(result.match_percentage || 0).toFixed(2)}
                   </div>
                 </div>
 
@@ -371,7 +349,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                     <strong>Eligibility Criteria Met:</strong>
                     <div style={{ color: "#666", marginTop: "8px" }}>
                       Patient meets <strong>{percentage}%</strong> of the trial's eligibility
-                      criteria with a compatibility score of <strong>{(result.score || 0).toFixed(2)}</strong>.
+                      criteria with a compatibility score of <strong>{(result.match_percentage || 0).toFixed(2)}</strong>.
                     </div>
                   </div>
 
