@@ -1,6 +1,3 @@
-# Dockerfile.ms4 - FIXED & IMPROVED
-# Multi-stage build for MS4 microservice with proper Python path configuration
-
 FROM python:3.11-slim as builder
 
 # Set working directory

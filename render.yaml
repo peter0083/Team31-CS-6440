@@ -1,0 +1,45 @@
+services:
+  - type: pserv
+    name: postgres
+    image:
+      fromRegistry: true
+      registryUrl: postgres:15
+    envVars:
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        value: postgres
+      - key: POSTGRES_DB
+        value: ms2_db
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  - type: web
+    name: ms2
+    image:
+      fromRegistry: false
+      dockerfile: ./Dockerfile.ms2
+    ports:
+      - 8002
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
+      - key: OPENAI_API_KEY
+        value: ${OPENAI_API_KEY}
+      - key: MS1_URL
+        value: http://localhost:8001
+    depends_on:
+      - postgres
+
+  - type: web
+    name: ui
+    image:
+      fromRegistry: false
+      dockerfile: ./Dockerfile.ui
+    ports:
+      - 5173
+    buildCommand: npm install
+    startCommand: npm run dev
