@@ -1,5 +1,3 @@
-"""Database models and session management for MS2 microservice."""
-
 from datetime import datetime
 from typing import AsyncGenerator
 
@@ -16,12 +14,10 @@ from src.ms2.ms2_config import settings
 
 
 class Base(AsyncAttrs, DeclarativeBase):
-    """Base class for all database models."""
     pass
 
 
 class ParsedCriteriaDB(Base):
-    """Database model for storing parsed criteria."""
     __tablename__ = "parsed_criteria"
 
     nct_id = Column(String(20), primary_key=True, index=True)
@@ -36,6 +32,7 @@ class ParsedCriteriaDB(Base):
     version = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    source = Column(String(50), default="openai")  # 'csv_import' or 'openai'
 
     __table_args__ = (
         Index('idx_confidence_timestamp', 'parsing_confidence', 'parsing_timestamp'),
@@ -52,14 +49,11 @@ engine = create_async_engine(
 )
 
 async_session_maker = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """Dependency for getting database sessions."""
     async with async_session_maker() as session:
         try:
             yield session
@@ -68,18 +62,15 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
 
-async def close_db()  -> None:
-    """Close database connections."""
+async def close_db() -> None:
     await engine.dispose()
 
 
 async def check_db_connection() -> bool:
-    """Check if database is connected."""
     try:
         async with async_session_maker() as session:
             await session.execute(text("SELECT 1"))

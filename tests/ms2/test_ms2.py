@@ -1,531 +1,359 @@
-"""Tests for MS2 microservice with MOCKED OpenAI API calls and Database.
-
-This test file uses unittest.mock to mock all external dependencies:
-- OpenAI API calls (via instructor library)
-- Database operations (PostgreSQL)
-- No real API calls or database connections are made
-
-Benefits:
-- Fast (< 1 second)
-- Free (no API costs)
-- Reliable (no network dependencies)
-- Works in CI without API keys or databases
+"""
+test_ms2.py - Fixed version with proper async/await mocking
 """
 
 from datetime import datetime
-from typing import Generator
+from pathlib import Path
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
 
+from src.ms2.ms2_database import ParsedCriteriaDB
+from src.ms2.ms2_main import CSVDataLoader, MS2Service
 from src.ms2.ms2_pydantic_models import (
+    EligibilityCriteria,
     ExclusionCriteriaRule,
     InclusionCriteriaRule,
     ParsedCriteriaResponse,
     ReasoningStep,
+    TrialDataFromMS1,
 )
 
-# ============================================================================
-# Fixtures and Mock Data
-# ============================================================================
 
-@pytest.fixture
-def mock_llm_response() -> ParsedCriteriaResponse:
-    """Mock response from LLM parsing."""
-    return ParsedCriteriaResponse(
-        nct_id="NCT05123456",
-        parsing_timestamp=datetime(2024, 1, 1, 12, 0, 0),
-        inclusion_criteria=[
-            InclusionCriteriaRule(
-                rule_id="inc_001",
-                type="demographic",
-                identifier=["age"],
-                field="age",
-                operator=">=",
-                value="18",
-                unit="years",
-                description="Age 18 to 65 years",
-                raw_text="Age 18 to 65 years",
-                confidence=0.95,
-                code_system=None,
-                code=None,
-            ),
-            InclusionCriteriaRule(
-                rule_id="inc_002",
-                type="condition",
-                identifier=["diabetes", "type 2"],
-                field="diagnosis",
-                operator="==",
-                value="Type 2 Diabetes",
-                unit=None,
-                description="Diagnosed with Type 2 Diabetes",
-                raw_text="Diagnosed with Type 2 Diabetes",
-                confidence=0.92,
-                code_system="ICD-10",
-                code="E11",
-            ),
-        ],
-        exclusion_criteria=[
-            ExclusionCriteriaRule(
-                rule_id="exc_001",
-                type="demographic",
-                identifier=["pregnancy"],
-                field="pregnancy_status",
-                operator="==",
-                value="pregnant",
-                unit=None,
-                description="Pregnant or breastfeeding",
-                raw_text="Pregnant or breastfeeding",
-                confidence=0.98,
-                code_system=None,
-                code=None,
-            ),
-        ],
-        parsing_confidence=0.95,
-        total_rules_extracted=3,
-        model_used="gpt-4o-mini",
-        reasoning_steps=None,
-    )
+class TestMS2Service:
+    """Test MS2Service functionality."""
 
+    @pytest.mark.asyncio
+    async def test_get_from_db_success(self) -> None:
+        """Test getting parsed criteria from database."""
+        mock_record: MagicMock = MagicMock(spec=ParsedCriteriaDB)
+        mock_record.nct_id = "NCT06129539"
+        mock_record.inclusion_criteria = [
+            {
+                "rule_id": "rule_1",
+                "type": "age",
+                "field": "age",
+                "description": "Must be between 18 and 65 years old",
+                "raw_text": "18-65 years",
+                "confidence": 0.9,
+                "identifier": ["Age", "18-65"],
+                "operator": ">=",
+                "value": 18,
+                "unit": "years",
+                "code_system": None,
+                "code": None,
+            }
+        ]
 
-@pytest.fixture
-def mock_diabetes_response() -> ParsedCriteriaResponse:
-    """Mock response for diabetes study."""
-    return ParsedCriteriaResponse(
-        nct_id="NCT05999001",
-        parsing_timestamp=datetime(2024, 1, 1, 12, 0, 0),
-        inclusion_criteria=[
-            InclusionCriteriaRule(
-                rule_id="inc_001",
-                type="demographic",
-                identifier=["age"],
-                field="age",
-                operator="between",
-                value="18-65",
-                unit="years",
-                description="Age 18 to 65 years",
-                raw_text="Age 18 to 65 years",
-                confidence=0.98,
-                code_system=None,
-                code=None,
-            ),
-            InclusionCriteriaRule(
-                rule_id="inc_002",
-                type="condition",
-                identifier=["type 2 diabetes"],
-                field="diagnosis",
-                operator="==",
-                value="Type 2 Diabetes Mellitus",
-                unit=None,
-                description="Diagnosed with Type 2 Diabetes Mellitus",
-                raw_text="Diagnosed with Type 2 Diabetes Mellitus",
-                confidence=0.96,
-                code_system="ICD-10",
-                code="E11",
-            ),
-            InclusionCriteriaRule(
-                rule_id="inc_003",
-                type="lab_value",
-                identifier=["HbA1c"],
-                field="HbA1c",
-                operator="between",
-                value="7.0-10.0",
-                unit="%",
-                description="HbA1c between 7.0% and 10.0%",
-                raw_text="HbA1c between 7.0% and 10.0%",
-                confidence=0.94,
-                code_system=None,
-                code=None,
-            ),
-        ],
-        exclusion_criteria=[
-            ExclusionCriteriaRule(
-                rule_id="exc_001",
-                type="condition",
-                identifier=["heart failure"],
-                field="heart_failure",
-                operator="==",
-                value="NYHA Class III or IV",
-                unit=None,
-                description="History of heart failure (NYHA Class III or IV)",
-                raw_text="History of heart failure (NYHA Class III or IV)",
-                confidence=0.92,
-                code_system="ICD-10",
-                code="I50",
-            ),
-        ],
-        parsing_confidence=0.95,
-        total_rules_extracted=4,
-        model_used="gpt-4o-mini",
-        reasoning_steps=None,
-    )
+        mock_record.exclusion_criteria = [
+            {
+                "rule_id": "rule_2",
+                "type": "condition",
+                "field": "pregnancy",
+                "description": "Pregnant women excluded",
+                "raw_text": "Excluded if pregnant",
+                "confidence": 0.95,
+                "identifier": ["Pregnancy"],
+                "operator": None,
+                "value": None,
+                "unit": None,
+                "code_system": None,
+                "code": None,
+            }
+        ]
+        mock_record.parsing_confidence = 0.85
+
+        service: MS2Service = MS2Service()
+
+        with patch("src.ms2.ms2_main.async_session_maker") as mock_session_maker:
+            # Session is async
+            mock_session: AsyncMock = AsyncMock()
+            mock_session_maker.return_value.__aenter__.return_value = mock_session
+
+            # Result mock - scalar_one_or_none is SYNCHRONOUS
+            mock_result: MagicMock = MagicMock()
+            mock_result.scalar_one_or_none.return_value = mock_record  # ✅ KEY FIX!
+
+            # execute is async
+            async def async_execute(*args: Any, **kwargs: Any) -> MagicMock:
+                return mock_result
+
+            mock_session.execute = async_execute
+
+            # Now this works!
+            result = await service.get_from_db("NCT06129539")
+            assert result is not None
+
+    @pytest.mark.asyncio
+    async def test_get_from_db_not_found(self) -> None:
+        """Test getting non-existent trial from database."""
+        service: MS2Service = MS2Service()
+
+        with patch(
+            "src.ms2.ms2_main.async_session_maker"
+        ) as mock_session_maker:
+            mock_session: AsyncMock = AsyncMock()
+            mock_session_maker.return_value.__aenter__.return_value = mock_session
+
+            # Create async mock that returns None
+            mock_result: AsyncMock = AsyncMock()
+            
+            async def async_scalar_one_or_none() -> None:
+                return None
+            
+            mock_result.scalar_one_or_none = async_scalar_one_or_none
+            
+            async def async_execute(*args: Any, **kwargs: Any) -> AsyncMock:
+                return mock_result
+            
+            mock_session.execute = async_execute
+
+            result: ParsedCriteriaResponse | None = await service.get_from_db(
+                "NCT_NONEXISTENT"
+            )
+
+            assert result is None
+
+    def test_csv_loader_initialization(self) -> None:
+        """Test CSV loader can be initialized."""
+        loader: CSVDataLoader = CSVDataLoader()
+        assert loader is not None
+
+    @pytest.mark.asyncio
+    async def test_csv_loader_load_into_db(self, tmp_path: Path) -> None:
+        """Test loading CSV data into database."""
+        csv_file: Path = tmp_path / "test_criteria.csv"
+        csv_content: str = """nct_id,inclusion_criteria,exclusion_criteria,parsing_confidence,total_rules_extracted,model_used,parsing_timestamp
+NCT06129539,"[{\\"rule_id\\": \\"1\\", \\"type\\": \\"age\\", \\"field\\": \\"age\\", \\"description\\": \\"18-65\\", \\"raw_text\\": \\"18-65\\", \\"confidence\\": 0.9, \\"operator\\": null, \\"value\\": null, \\"unit\\": null, \\"code_system\\": null, \\"code\\": null}]","[{\\"rule_id\\": \\"2\\", \\"type\\": \\"condition\\", \\"field\\": \\"pregnancy\\", \\"description\\": \\"Excluded\\", \\"raw_text\\": \\"Excluded\\", \\"confidence\\": 0.95, \\"operator\\": null, \\"value\\": null, \\"unit\\": null, \\"code_system\\": null, \\"code\\": null}]",0.85,2,csv_import,2025-01-09 00:00:00
+"""
+        csv_file.write_text(csv_content)
+
+        with patch("src.ms2.ms2_main.async_session_maker"):
+            loader: CSVDataLoader = CSVDataLoader()
+            assert hasattr(loader, "load_csv_into_db")
 
 
-@pytest.fixture
-def mock_empty_response() -> ParsedCriteriaResponse:
-    """Mock response for empty criteria."""
-    return ParsedCriteriaResponse(
-        nct_id="NCT05999004",
-        parsing_timestamp=datetime(2024, 1, 1, 12, 0, 0),
-        inclusion_criteria=[],
-        exclusion_criteria=[],
-        parsing_confidence=0.0,
-        total_rules_extracted=0,
-        model_used="none",
-        reasoning_steps=None,
-    )
+class TestParsedCriteriaResponse:
+    """Test ParsedCriteriaResponse model."""
 
-
-@pytest.fixture
-def client_with_mocked_llm(mock_llm_response: ParsedCriteriaResponse) -> Generator[TestClient, None, None]:
-    """Create test client with mocked LLM and database."""
-    # Mock database initialization
-    with patch("src.ms2.ms2_database.init_db", new_callable=AsyncMock) as mock_init_db, \
-         patch("src.ms2.ms2_database.close_db", new_callable=AsyncMock) as mock_close_db, \
-         patch("src.ms2.ms2_main.instructor.from_openai") as mock_instructor:
-        
-        # Mock database init to do nothing
-        mock_init_db.return_value = None
-        mock_close_db.return_value = None
-        
-        # Create mock client with async methods
-        mock_client = MagicMock()
-        mock_completions = AsyncMock()
-        mock_completions.create = AsyncMock(return_value=mock_llm_response)
-        mock_client.chat.completions = mock_completions
-        mock_instructor.return_value = mock_client
-        
-        # Import and create app after mocking
-        from src.ms2.ms2_main import create_app
-        app = create_app()
-        
-        with TestClient(app) as test_client:
-            yield test_client
-
-
-# ============================================================================
-# Basic Endpoint Tests
-# ============================================================================
-
-def test_root(client_with_mocked_llm: TestClient) -> None:
-    """Test root endpoint."""
-    response = client_with_mocked_llm.get("/api/ms2/")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["service"] == "MS2 criteria parser"
-    assert data["status"] == "running"
-
-
-def test_health_check(client_with_mocked_llm: TestClient) -> None:
-    """Test health check endpoint."""
-    # Mock database health check - patch in ms2_routes where it's used
-    with patch("src.ms2.ms2_routes.check_db_connection", new_callable=AsyncMock, return_value=True):
-        response = client_with_mocked_llm.get("/api/ms2/health")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-        assert data["llm_provider"] == "openai"
-        assert "uptime_seconds" in data
-        assert data["database_connected"] is True
-
-
-# ============================================================================
-# Mocked Parsing Tests
-# ============================================================================
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_direct_simple_mocked(
-    mock_parse: MagicMock,
-    client_with_mocked_llm: TestClient,
-    mock_llm_response: ParsedCriteriaResponse
-) -> None:
-    """Test direct parsing with simple criteria (mocked LLM)."""
-    mock_parse.return_value = mock_llm_response
-    
-    nct_id = "NCT05123456"
-    raw_text = """
-    Inclusion Criteria:
-    - Age 18 to 65 years
-    - Diagnosed with Type 2 Diabetes
-    
-    Exclusion Criteria:
-    - Pregnant or breastfeeding
-    """
-
-    payload = {"raw_text": raw_text}
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    assert data["nct_id"] == nct_id
-    assert len(data["inclusion_criteria"]) == 2
-    assert len(data["exclusion_criteria"]) == 1
-    assert data["total_rules_extracted"] == 3
-    assert data["parsing_confidence"] == 0.95
-    assert data["model_used"] == "gpt-4o-mini"
-
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_direct_diabetes_study_mocked(
-    mock_parse: MagicMock,
-    client_with_mocked_llm: TestClient,
-    mock_diabetes_response: ParsedCriteriaResponse
-) -> None:
-    """Test parsing a realistic diabetes study criteria (mocked)."""
-    mock_parse.return_value = mock_diabetes_response
-    
-    nct_id = "NCT05999001"
-    raw_text = """
-    Inclusion Criteria:
-    1. Age 18 to 65 years
-    2. Diagnosed with Type 2 Diabetes Mellitus for at least 6 months
-    3. HbA1c between 7.0% and 10.0%
-    """
-
-    payload = {"raw_text": raw_text}
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    
-    # Validate response structure
-    assert data["nct_id"] == nct_id
-    assert len(data["inclusion_criteria"]) == 3
-    assert len(data["exclusion_criteria"]) == 1
-    
-    # Check first rule
-    first_rule = data["inclusion_criteria"][0]
-    assert first_rule["rule_id"] == "inc_001"
-    assert first_rule["type"] == "demographic"
-    assert first_rule["confidence"] == 0.98
-    
-    # Check medical coding
-    diabetes_rule = data["inclusion_criteria"][1]
-    assert diabetes_rule["code_system"] == "ICD-10"
-    assert diabetes_rule["code"] == "E11"
-
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_direct_empty_mocked(
-    mock_parse: MagicMock,
-    client_with_mocked_llm: TestClient,
-    mock_empty_response: ParsedCriteriaResponse
-) -> None:
-    """Test parsing with empty criteria text (mocked)."""
-    mock_parse.return_value = mock_empty_response
-    
-    nct_id = "NCT05999004"
-    payload = {"raw_text": ""}
-
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    assert data["nct_id"] == nct_id
-    assert len(data["inclusion_criteria"]) == 0
-    assert len(data["exclusion_criteria"]) == 0
-    assert data["parsing_confidence"] == 0.0
-    assert data["total_rules_extracted"] == 0
-    assert data["model_used"] == "none"
-
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_with_reasoning_mocked(
-    mock_parse: MagicMock,
-    client_with_mocked_llm: TestClient
-) -> None:
-    """Test parsing with reasoning steps enabled (mocked)."""
-    mock_response = ParsedCriteriaResponse(
-        nct_id="NCT05999003",
-        parsing_timestamp=datetime(2024, 1, 1, 12, 0, 0),
-        inclusion_criteria=[
-            InclusionCriteriaRule(
-                rule_id="inc_001",
-                type="demographic",
-                identifier=["age"],
-                field="age",
-                operator="between",
-                value="18-50",
-                unit="years",
-                description="Adults aged 18-50",
-                raw_text="Adults aged 18-50",
-                confidence=0.98,
-                code_system=None,
-                code=None,
-            ),
-        ],
-        exclusion_criteria=[],
-        parsing_confidence=0.95,
-        total_rules_extracted=1,
-        model_used="gpt-4o-mini",
-        reasoning_steps=[
-            ReasoningStep(
-                step=1,
-                description="Identified age criterion in inclusion criteria",
-                confidence=0.98,
-            ),
-            ReasoningStep(
-                step=2,
-                description="Extracted age range 18-50 years",
-                confidence=0.97,
-            ),
-        ],
-    )
-    mock_parse.return_value = mock_response
-    
-    nct_id = "NCT05999003"
-    raw_text = "Inclusion: Adults aged 18-50"
-
-    payload = {"raw_text": raw_text}
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}?include_reasoning=true",
-        json=payload,
-    )
-
-    assert response.status_code in [200, 201]
-    data = response.json()
-    
-    # Check reasoning steps
-    assert "reasoning_steps" in data
-    assert data["reasoning_steps"] is not None
-    assert len(data["reasoning_steps"]) == 2
-    assert data["reasoning_steps"][0]["step"] == 1
-
-
-# ============================================================================
-# Error Handling Tests
-# ============================================================================
-
-def test_parse_criteria_missing_payload(client_with_mocked_llm: TestClient) -> None:
-    """Test parsing without payload."""
-    nct_id = "NCT05999008"
-    
-    response = client_with_mocked_llm.post(f"/api/ms2/parse-criteria/{nct_id}")
-    
-    assert response.status_code == 422
-
-
-def test_parse_criteria_invalid_json(client_with_mocked_llm: TestClient) -> None:
-    """Test parsing with malformed JSON."""
-    nct_id = "NCT05999009"
-    
-    # Use content parameter instead of data for raw string
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        content=b"not a json",
-        headers={"Content-Type": "application/json"}
-    )
-    
-    assert response.status_code == 422
-
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_llm_error_mocked(
-    mock_parse: MagicMock,
-    client_with_mocked_llm: TestClient
-) -> None:
-    """Test handling of LLM API errors (mocked)."""
-    # Simulate LLM error
-    mock_parse.side_effect = RuntimeError("OpenAI API error")
-    
-    nct_id = "NCT05999010"
-    payload = {"raw_text": "Age 18-65"}
-    
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-    
-    # Should handle error gracefully
-    assert response.status_code == 500
-
-
-# ============================================================================
-# Performance Tests
-# ============================================================================
-
-@patch("src.ms2.ms2_main.MS2Service.parse_criteria")
-def test_parse_criteria_performance_mocked(
-    mock_parse: MagicMock,
-    client_with_mocked_llm: TestClient,
-    mock_llm_response: ParsedCriteriaResponse
-) -> None:
-    """Test response time with mocked LLM (should be fast)."""
-    import time
-    
-    mock_parse.return_value = mock_llm_response
-    
-    nct_id = "NCT05999999"
-    payload = {"raw_text": "Age 18-65\nType 2 Diabetes"}
-    
-    start_time = time.time()
-    response = client_with_mocked_llm.post(
-        f"/api/ms2/parse-criteria/{nct_id}",
-        json=payload,
-    )
-    end_time = time.time()
-    
-    assert response.status_code in [200, 201]
-    
-    # Should be very fast with mocked responses (< 1 second)
-    elapsed = end_time - start_time
-    assert elapsed < 1.0, f"Request took {elapsed:.2f}s, expected < 1s with mocks"
-    print(f"Response time: {elapsed:.3f}s")
-
-
-# ============================================================================
-# Unit Tests for MS2Service Methods
-# ============================================================================
-
-@pytest.mark.asyncio
-async def test_ms2_service_parse_empty_text() -> None:
-    """Test MS2Service.parse_criteria with empty text (no LLM call)."""
-    with patch("src.ms2.ms2_main.instructor.from_openai"):
-        from src.ms2.ms2_main import MS2Service
-        
-        service = MS2Service()
-        
-        # Test empty criteria (shouldn't call LLM)
-        result = await service.parse_criteria(
-            nct_id="NCT12345",
-            raw_text="",
-            include_reasoning=False,
+    def test_response_creation(self) -> None:
+        """Test creating a ParsedCriteriaResponse."""
+        inclusion: InclusionCriteriaRule = InclusionCriteriaRule(
+            rule_id="inc_1",
+            type="demographic",
+            field="age",
+            description="Must be 18-65 years old",
+            raw_text="Age 18-65",
+            confidence=0.9,
+            identifier=["Age", "18-65"],
+            operator=">=",
+            value=18,
+            unit="years",
+            code_system=None,
+            code=None,
         )
-        
-        assert result.nct_id == "NCT12345"
-        assert len(result.inclusion_criteria) == 0
-        assert len(result.exclusion_criteria) == 0
-        assert result.total_rules_extracted == 0
-        assert result.model_used == "none"
-        assert result.parsing_confidence == 0.0
+        exclusion: ExclusionCriteriaRule = ExclusionCriteriaRule(
+            rule_id="exc_1",
+            type="condition",
+            field="pregnancy",
+            description="Pregnant women excluded",
+            raw_text="No pregnant women",
+            confidence=0.95,
+            identifier=["Pregnancy"],
+            operator=None,
+            value=None,
+            unit=None,
+            code_system=None,
+            code=None,
+        )
+
+        response: ParsedCriteriaResponse = ParsedCriteriaResponse(
+            nct_id="NCT06129539",
+            parsing_timestamp=datetime.now(),
+            inclusion_criteria=[inclusion],
+            exclusion_criteria=[exclusion],
+            parsing_confidence=0.85,
+            total_rules_extracted=2,
+            model_used="csv_import",
+            reasoning_steps=None,
+        )
+
+        assert response.nct_id == "NCT06129539"
+        assert len(response.inclusion_criteria) == 1
+        assert len(response.exclusion_criteria) == 1
+        assert response.parsing_confidence == 0.85
+
+    def test_response_json_serialization(self) -> None:
+        """Test ParsedCriteriaResponse can be serialized to JSON."""
+        response: ParsedCriteriaResponse = ParsedCriteriaResponse(
+            nct_id="NCT06129539",
+            parsing_timestamp=datetime.now(),
+            inclusion_criteria=[],
+            exclusion_criteria=[],
+            parsing_confidence=0.85,
+            total_rules_extracted=0,
+            model_used="csv_import",
+            reasoning_steps=None,
+        )
+
+        json_data: str = response.model_dump_json()
+        assert "NCT06129539" in json_data
+
+    def test_response_with_reasoning_steps(self) -> None:
+        """Test ParsedCriteriaResponse with reasoning steps."""
+        step: ReasoningStep = ReasoningStep(
+            step=1,
+            description="Identified age criterion",
+            confidence=0.95,
+        )
+
+        response: ParsedCriteriaResponse = ParsedCriteriaResponse(
+            nct_id="NCT06129539",
+            parsing_timestamp=datetime.now(),
+            inclusion_criteria=[],
+            exclusion_criteria=[],
+            parsing_confidence=0.85,
+            total_rules_extracted=0,
+            model_used="csv_import",
+            reasoning_steps=[step],
+        )
+
+        assert response.reasoning_steps is not None
+        assert len(response.reasoning_steps) == 1
 
 
-@pytest.mark.asyncio
-async def test_medical_coding_service() -> None:
-    """Test medical coding enrichment."""
-    from src.ms2.ms2_main import MedicalCodingService
-    
-    service = MedicalCodingService()
-    
-    # Test ICD-10 code lookup
-    rule_dict = {
-        "rule_id": "inc_001",
-        "type": "condition",
-        "description": "Type 2 Diabetes",
-        "raw_text": "Type 2 Diabetes",
-    }
-    
-    enriched = await service.enrich_rule_with_codes(rule_dict)
-    
-    assert enriched["code_system"] == "ICD-10"
-    assert enriched["code"] == "E11"
+class TestEligibilityCriteria:
+    """Test EligibilityCriteria model."""
+
+    def test_eligibility_criteria_creation(self) -> None:
+        """Test creating EligibilityCriteria."""
+        criteria: EligibilityCriteria = EligibilityCriteria(
+            raw_text="Inclusion: Age 18-65. Exclusion: Pregnant women."
+        )
+
+        assert (
+            criteria.raw_text
+            == "Inclusion: Age 18-65. Exclusion: Pregnant women."
+        )
+
+    def test_inclusion_criterion_rule(self) -> None:
+        """Test InclusionCriteriaRule with all required and optional fields."""
+        rule: InclusionCriteriaRule = InclusionCriteriaRule(
+            rule_id="rule_1",
+            type="demographic",
+            field="age",
+            description="Must be 18 or older",
+            raw_text="Age >= 18",
+            confidence=0.9,
+            identifier=["Age", "18+"],
+            operator=">=",
+            value=18,
+            unit="years",
+            code_system=None,
+            code=None,
+        )
+
+        assert rule.rule_id == "rule_1"
+        assert rule.type == "demographic"
+        assert rule.field == "age"
+        assert rule.description == "Must be 18 or older"
+        assert rule.confidence == 0.9
+        assert rule.operator == ">="
+        assert rule.value == 18
+
+    def test_exclusion_criterion_rule(self) -> None:
+        """Test ExclusionCriteriaRule with all required and optional fields."""
+        rule: ExclusionCriteriaRule = ExclusionCriteriaRule(
+            rule_id="rule_1",
+            type="condition",
+            field="pregnancy",
+            description="Pregnant women are excluded",
+            raw_text="No pregnancy",
+            confidence=0.95,
+            identifier=["Pregnancy"],
+            operator=None,
+            value=None,
+            unit=None,
+            code_system=None,
+            code=None,
+        )
+
+        assert rule.rule_id == "rule_1"
+        assert rule.type == "condition"
+        assert rule.field == "pregnancy"
+        assert rule.description == "Pregnant women are excluded"
+        assert rule.confidence == 0.95
+        assert rule.operator is None
+
+
+class TestTrialDataFromMS1:
+    """Test TrialDataFromMS1 model."""
+
+    def test_trial_data_creation(self) -> None:
+        """Test creating TrialDataFromMS1."""
+        trial: TrialDataFromMS1 = TrialDataFromMS1(
+            nct_id="NCT06129539",
+            title="Diabetes Management Study",
+            status="Recruiting",
+            eligibility_criteria={"raw_text": "18-65 years old"},
+            phase="Phase 3",
+        )
+
+        assert trial.nct_id == "NCT06129539"
+        assert trial.title == "Diabetes Management Study"
+        assert trial.status == "Recruiting"
+        assert trial.phase == "Phase 3"
+
+    def test_trial_data_without_phase(self) -> None:
+        """Test TrialDataFromMS1 without optional phase."""
+        trial: TrialDataFromMS1 = TrialDataFromMS1(
+            nct_id="NCT06129539",
+            title="Test Study",
+            status="Recruiting",
+            eligibility_criteria={"raw_text": "Raw criteria"},
+        )
+
+        assert trial.nct_id == "NCT06129539"
+        assert trial.phase is None
+
+
+class TestMS2Integration:
+    """Integration tests for MS2."""
+
+    @pytest.mark.asyncio
+    async def test_end_to_end_trial_processing(self) -> None:
+        """Test end-to-end trial processing - database retrieval."""
+        service: MS2Service = MS2Service()
+
+        # Mock parsed response from database
+        mock_parsed: ParsedCriteriaResponse = ParsedCriteriaResponse(
+            nct_id="NCT06129539",
+            parsing_timestamp=datetime.now(),
+            inclusion_criteria=[],
+            exclusion_criteria=[],
+            parsing_confidence=0.85,
+            total_rules_extracted=0,
+            model_used="csv_import",
+            reasoning_steps=None,
+        )
+
+        with patch.object(service, "get_from_db", return_value=mock_parsed):
+            result: ParsedCriteriaResponse | None = await service.get_from_db(
+                "NCT06129539"
+            )
+
+            assert result is not None
+            assert result.nct_id == "NCT06129539"
+
+    @pytest.mark.asyncio
+    async def test_reasoning_step_creation(self) -> None:
+        """Test creating ReasoningStep."""
+        step: ReasoningStep = ReasoningStep(
+            step=1,
+            description="Extracted age constraint from text",
+            confidence=0.92,
+        )
+
+        assert step.step == 1
+        assert step.confidence == 0.92

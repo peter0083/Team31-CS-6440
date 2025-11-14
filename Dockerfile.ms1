@@ -1,4 +1,3 @@
-# src/ms1/Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -13,10 +12,15 @@ RUN pip install --no-cache-dir fastapi uvicorn[standard] requests httpx pydantic
 # Copy the FastAPI app into the container
 COPY src/ms1/ClinicalTrialsFetcher.py /app/
 
+# Create data directory and copy mock data
+RUN mkdir -p /app/data/ms1
+# Copy JSON files - path is relative to repo root (where docker-compose.yml is)
+COPY data/ms1/*.json /app/data/ms1/
+
 # Expose the correct port
 EXPOSE 8001
 
-# Optional (helps with imports if more files are added later)
+# Set Python path
 ENV PYTHONPATH=/app
 
 # Start FastAPI app
