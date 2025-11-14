@@ -18,8 +18,8 @@ SCHEMA = {
   }
 }
 
-def test_live() -> None:
-    r = requests.get("http://localhost:8001/live", timeout=5)
+def test_health() -> None:
+    r = requests.get("http://localhost:8001/health", timeout=5)
     assert r.status_code == 200
 
 def test_patient_example_contract() -> None:

@@ -4,8 +4,8 @@ from src.main import app
 
 client = TestClient(app)
 
-def test_live() -> None:
-    r = client.get("/live")
+def test_health() -> None:
+    r = client.get("/health")
     assert r.status_code == 200
 
 def test_ready_shape() -> None:
