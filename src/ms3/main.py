@@ -172,7 +172,7 @@ async def get_patients(limit: int = 100, offset: int = 0):
         patients = result.scalars().all()
         return [
             Demographics(
-                patient_id=p.id,
+                patient_id=str(p.id),  # convert UUID type to string for pydantic
                 birth_date=p.birth_date,
                 age=p.age,
                 gender=p.gender,
@@ -197,7 +197,7 @@ async def get_patient(patient_id: str):
         if not patient:
             raise HTTPException(status_code=404, detail="Patient not found")
         return Demographics(
-            patient_id=patient.id,
+            patient_id=str(patient.id),  ## convert UUID type to str to prevent pydantic error
             birth_date=patient.birth_date,
             age=patient.age,
             gender=patient.gender,
@@ -219,7 +219,7 @@ async def get_patient_conditions(patient_id: str):
         conditions = result.scalars().all()
         return [
             ConditionItem(
-                condition_id=c.id,
+                condition_id=str(c.id),   # convert UUID type to string for pydantic
                 code=c.code,
                 code_system=c.code_system,
                 description=c.description,
@@ -243,7 +243,7 @@ async def get_patient_observations(patient_id: str):
         observations = result.scalars().all()
         return [
             LabResult(
-                observation_id=o.id,
+                observation_id=str(o.id),   # convert UUID type to string for pydantic
                 code=o.code,
                 code_system=o.code_system,
                 display=o.display,
@@ -270,7 +270,7 @@ async def get_patient_medications(patient_id: str):
         medications = result.scalars().all()
         return [
             Medication(
-                medication_id=m.id,
+                medication_id=str(m.id),   # convert UUID type to string for pydantic
                 name=m.medication_text,
                 generic_name=m.generic_name,
                 dose=m.dose_text,
