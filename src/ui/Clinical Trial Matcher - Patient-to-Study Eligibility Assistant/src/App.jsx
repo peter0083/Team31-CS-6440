@@ -1,217 +1,412 @@
-import React, { useState } from "react";
-import HealthStatus from "./components/HealthStatus";
+import React, { useState, useEffect } from "react";
+import MS2HealthStatus from "./components/MS2HealthStatus.jsx";
+import MS3HealthStatus from "./components/MS3HealthStatus.jsx";
+import MS4TrialMatchResults from "./components/MS4TrialMatchResults.jsx";
+import "../../index.css";
+import "../../MS4TrialMatchResults.css";
+import "../../HealthStatusHeader.css";
+
 
 function App() {
-  const [term, setTerm] = useState("");
+  const [selectedCondition, setSelectedCondition] = useState("diabetes");
   const [results, setResults] = useState(null);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [parsedCache, setParsedCache] = useState({});
+  const [expandedTrial, setExpandedTrial] = useState(null);
+  const [selectedTrial, setSelectedTrial] = useState(null);
+  const [showMatchResults, setShowMatchResults] = useState(false);
 
-  // Use environment variables for API endpoints with fallback to localhost
-  const API_SEARCH_URL = import.meta.env.VITE_API_SEARCH_URL || "http://localhost:8000/search-trials";
-  const API_DISPLAY_URL = import.meta.env.VITE_API_DISPLAY_URL || "http://localhost:8002/display";
+  const CONDITIONS = ["diabetes", "dementia", "cancer"];
 
+  // API URLs from environment variables
+  const APISEARCHURL = import.meta.env.VITE_API_SEARCH_URL || "http://localhost:8000/search";
+  const APIMS2URL = import.meta.env.VITE_API_MS2_URL || "http://localhost:8002";
+
+  useEffect(() => {
+    console.log("App mounted!");
+  }, []);
+
+  /**
+   * Step 1: Search for trials by condition (calls MS1 → MS2)
+   */
   const handleSearch = async () => {
-    if (!/^[a-zA-Z0-9\\s]+$/.test(term)) {
-      setError("❌ Please enter only letters and numbers.");
-      setResults(null);
-      return;
-    }
-
-    setError("");
+    setError(null);
     setResults(null);
     setLoading(true);
+    setSelectedTrial(null);
+    setShowMatchResults(false);
 
     try {
-      const res = await fetch(API_SEARCH_URL, {
+      const res = await fetch(APISEARCHURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ term }),
+        body: JSON.stringify({ term: selectedCondition }),
       });
+
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
 
       const data = await res.json();
 
-      if (data.message && data.message.includes("No results")) {
-        setError(data.message);
-        setResults(null);
+      if (data.trials && data.trials.length > 0) {
+        console.log(`✅ Found ${data.trials.length} trials for ${selectedCondition}`);
+        setResults(data);
+        setError(null);
+        
+        // Pre-fetch parsed criteria for all trials
+        fetchParsedCriteria(data.trials);
       } else {
-        const recv = await fetch(API_DISPLAY_URL);
-        const recvData = await recv.json();
-        setResults(recvData);
+        setError(`No trials found for ${selectedCondition}`);
+        setResults(null);
       }
-    } catch (err) {
-      setError("⚠️ Error fetching data. Please try again.");
-      console.error("API Error:", err);
+    } catch (error) {
+      console.error("API Error:", error);
+      setError("Error fetching data. Please try again.");
+      setResults(null);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div
-      style={{
-        fontFamily: "Arial, sans-serif",
-        background: "linear-gradient(to bottom, #f8f9fa, #e9ecef)",
-        minHeight: "100vh",
-        padding: "20px",
-      }}
-    >
-      {/* Health Status Component - Fixed in top right */}
-      <HealthStatus />
+  /**
+   * Pre-fetch parsed criteria from MS2 for all trials
+   */
+  const fetchParsedCriteria = async (trials) => {
+    const newCache = { ...parsedCache };
+    
+    for (const trial of trials) {
+      const nctId = trial.nct_id || trial.NCT_ID || trial.nctid;
+      
+      if (!nctId || newCache[nctId]) {
+        continue; // Skip if already cached
+      }
 
-      {/* ─────────────── Header ─────────────── */}
-      <header style={{ textAlign: "center", marginBottom: "30px" }}>
-        <h1 style={{ color: "#333", margin: 0 }}>🔎 Clinical Trial Search</h1>
-        <p style={{ color: "#666", fontSize: "14px" }}>
-          Find active clinical trials by entering a search term below.
+      try {
+        const url = `${APIMS2URL}/api/ms2/parsed-criteria/${nctId}`;
+        console.log(`Fetching criteria from: ${url}`);
+        
+        const response = await fetch(url);
+        
+        if (response.ok) {
+          const criteriaData = await response.json();
+          newCache[nctId] = criteriaData;
+          console.log(`Successfully cached criteria for ${nctId}`);
+        } else {
+          console.warn(`Failed to fetch criteria for ${nctId}: ${response.status}`);
+          newCache[nctId] = null;
+        }
+      } catch (err) {
+        console.error(`Error fetching criteria for ${nctId}:`, err);
+        newCache[nctId] = null;
+      }
+    }
+
+    setParsedCache(newCache);
+  };
+
+  /**
+   * Toggle trial details expansion
+   */
+    const toggleExpand = (nctId) => {
+    setExpandedTrial(expandedTrial === nctId ? null : nctId);
+  };
+
+  /**
+   * Handle trial selection - triggers MS4 matching
+   */
+  const handleSelectTrial = (trial) => {
+    const trialId = trial.nct_id || trial.NCT_ID || trial.nctid || trial.id;
+    console.log("Trial selected:", trialId);
+    
+    setSelectedTrial(trial);
+    setShowMatchResults(true);
+    
+    // Scroll to results section after a brief delay
+    setTimeout(() => {
+      const element = document.querySelector(".match-results-section");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
+
+  return (
+    <div className="container">
+      <header className="header">
+        <h1>🏥 Clinical Trial Patient Matcher</h1>
+        <p className="subtitle">
+          Find the best clinical trials for patients with specific conditions
         </p>
       </header>
 
-      {/* ─────────────── Search Box ─────────────── */}
-      <div
-        style={{
-          maxWidth: "600px",
-          margin: "0 auto 30px",
-          background: "white",
-          padding: "20px",
-          borderRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Enter search term (e.g., diabetes, cancer)"
-          value={term}
-          onChange={(e) => setTerm(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-          style={{
-            width: "100%",
-            padding: "12px",
-            fontSize: "16px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            marginBottom: "10px",
-            boxSizing: "border-box",
-          }}
-        />
+      {/* Health Status Dashboard */}
+      <section className="health-status-section">
+        <h2>System Health Status</h2>
+        <div className="health-status-grid">
+          <MS2HealthStatus />
+          <MS3HealthStatus />
+        </div>
+      </section>
+
+    {/* Step 1: Condition Selection and Trial Search */}
+    <section className="search-section card">
+      <h2>Step 1: Select Condition and Search Trials</h2>
+
+      <div className="input-group" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        {/* Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="condition-select">Medical Condition:</label>
+            <select
+              id="condition-select"
+              value={selectedCondition}
+              onChange={(e) => setSelectedCondition(e.target.value)}
+              className="select-input"
+              style={{
+                width: '100%',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                padding: '8px 12px',
+                borderRadius: '4px',
+                border: '1px solid var(--color-card-border)',
+                cursor: 'pointer',
+                fontSize: '16px'
+              }}
+            >
+              {CONDITIONS.map((cond) => (
+                <option key={cond} value={cond}>
+                  {cond.charAt(0).toUpperCase() + cond.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Button - Separate Line */}
         <button
           onClick={handleSearch}
           disabled={loading}
-          style={{
-            width: "100%",
-            padding: "12px",
-            fontSize: "16px",
-            backgroundColor: loading ? "#ccc" : "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: loading ? "not-allowed" : "pointer",
-            fontWeight: "bold",
-          }}
+          className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 disabled:bg-gray-100 disabled:text-gray-400 font-semibold text-sm transition-all"
         >
           {loading ? "Searching..." : "Search Trials"}
         </button>
-      </div>
 
-      {/* ─────────────── Error Message ─────────────── */}
       {error && (
-        <div
-          style={{
-            maxWidth: "600px",
-            margin: "0 auto 20px",
-            padding: "15px",
-            background: "#f8d7da",
-            color: "#721c24",
-            border: "1px solid #f5c6cb",
-            borderRadius: "4px",
-            textAlign: "center",
-          }}
-        >
-          {error}
+        <div className="error-message">
+          <strong>Error:</strong> {error}
         </div>
       )}
+      </div>
+    </section>
 
-      {/* ─────────────── Loading Spinner ─────────────── */}
-      {loading && (
-        <div style={{ textAlign: "center", fontSize: "18px", color: "#666" }}>
-          <div
-            style={{
-              display: "inline-block",
-              width: "40px",
-              height: "40px",
-              border: "4px solid #f3f3f3",
-              borderTop: "4px solid #007bff",
-              borderRadius: "50%",
-              animation: "spin 1s linear infinite",
-            }}
-          />
-          <p>Fetching studies...</p>
-        </div>
-      )}
 
-      {/* ─────────────── Results Display ─────────────── */}
-      {results && results.studies && (
-        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-          <h2 style={{ textAlign: "center", color: "#333" }}>
-            Found {results.studies.length} Clinical Trial(s)
-          </h2>
-          {results.studies.map((study, idx) => (
+     {/* Step 2: Trial Selection */}
+{results && results.trials && results.trials.length > 0 && (
+  <section className="results-section card">
+    <h2>Step 2: Select a Trial</h2>
+    <p className="info-text">
+      Found <strong>{results.trials.length}</strong> trials for{" "}
+      <strong>{selectedCondition}</strong>
+    </p>
+
+    <div className="trials-list">
+      {results.trials.map((trial) => {
+        const nctId = trial.nct_id || trial.NCT_ID || trial.nctid;
+        const title = trial.official_title || trial.title || "No title available";
+        const isExpanded = expandedTrial === nctId;
+        const criteria = parsedCache[nctId];
+
+        return (
+          <div key={nctId} className="trial-card">
+            {/* View Details Button */}
             <div
-              key={idx}
+              className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all"
               style={{
-                background: "white",
-                padding: "20px",
-                marginBottom: "20px",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                width: 'fit-content',
+                marginBottom: '8px'
               }}
+              onClick={() => toggleExpand(nctId)}
             >
-              <h3 style={{ marginTop: 0, color: "#007bff" }}>
-                {study.title || "Untitled Study"}
-              </h3>
-              <p style={{ fontSize: "14px", color: "#555" }}>
-                <strong>NCT ID:</strong> {study.nct_id || "N/A"}
-              </p>
-              <p style={{ fontSize: "14px", color: "#555" }}>
-                <strong>Status:</strong> {study.recruitment_status || "N/A"}
-              </p>
-              <p style={{ fontSize: "14px", color: "#555" }}>
-                <strong>Location:</strong> {study.location || "N/A"}
-              </p>
-              <p style={{ fontSize: "14px", color: "#555" }}>
-                <strong>Phase:</strong> {study.phase?.join(", ") || "N/A"}
-              </p>
-              <p style={{ fontSize: "14px", color: "#555" }}>
-                <strong>Lead Sponsor:</strong> {study.sponsor || "N/A"}
-              </p>
+              <span>{isExpanded ? '▼' : '▶'}</span>
+              <span>View Details</span>
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* ─────────────── Empty State ─────────────── */}
-      {!results && !loading && !error && (
-        <div
-          style={{
-            textAlign: "center",
-            color: "#999",
-            fontSize: "16px",
-            marginTop: "50px",
-          }}
-        >
-          <p>Enter a term above to find active trials.</p>
-        </div>
-      )}
+            {/* Trial Header */}
+            <div
+              className="trial-header"
+              onClick={() => toggleExpand(nctId)}
+              style={{ cursor: 'pointer'}}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                <strong style={{ fontSize: '14px', color: '#666' }}>{nctId}</strong>
+                <div className="trial-title">
+                  <span className="trial-name" style={{ fontSize: '16px', fontWeight: '500' }}>
+                    {title}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-      {/* ─────────────── CSS Animation ─────────────── */}
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}
-      </style>
+            {/* Expanded Details Section */}
+            {isExpanded && (
+              <div className="trial-details" style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #eee' }}>
+                <div className="detail-row" style={{ marginBottom: '8px' }}>
+                  <strong>Phase:</strong> {trial.phase || "N/A"}
+                </div>
+                <div className="detail-row" style={{ marginBottom: '12px' }}>
+                  <strong>Location:</strong> {trial.location || "N/A"}
+                </div>
+
+                {/* Eligibility Criteria */}
+                {criteria ? (
+                  <div className="criteria-section" style={{ marginTop: '12px' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                      Eligibility Criteria
+                    </h4>
+
+                    {/* Inclusion Criteria */}
+                    {criteria.inclusion_criteria && Array.isArray(criteria.inclusion_criteria) && criteria.inclusion_criteria.length > 0 && (
+                      <div style={{ marginBottom: '12px' }}>
+                        <h5 style={{ fontSize: '12px', color: '#28a745', fontWeight: '600', marginBottom: '6px' }}>
+                          ✓ Inclusion Criteria ({criteria.inclusion_criteria.length})
+                        </h5>
+                        <ul style={{
+                          fontSize: '13px',
+                          paddingLeft: '24px',
+                          marginTop: '0',
+                          marginBottom: '8px',
+                          lineHeight: '1.6'
+                        }}>
+                          {criteria.inclusion_criteria.slice(0, 3).map((item, i) => (
+                            <li
+                              key={i}
+                              style={{
+                                color: '#333',
+                                marginBottom: '8px',
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word',
+                                overflowWrap: 'break-word',
+                                lineHeight: '1.6',
+                                  color: '#e0e0e0'
+                              }}
+                            >
+                              {item.description || item.raw_text || "N/A"}
+                            </li>
+                          ))}
+                          {criteria.inclusion_criteria.length > 3 && (
+                            <li style={{ color: '#999', fontSize: '12px' }}>
+                              +{criteria.inclusion_criteria.length - 3} more
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Exclusion Criteria */}
+                    {criteria.exclusion_criteria && Array.isArray(criteria.exclusion_criteria) && criteria.exclusion_criteria.length > 0 && (
+                      <div>
+                        <h5 style={{ fontSize: '12px', color: '#c01f2f', fontWeight: '600', marginBottom: '6px' }}>
+                          ✗ Exclusion Criteria ({criteria.exclusion_criteria.length})
+                        </h5>
+                        <ul style={{
+                          fontSize: '13px',
+                          paddingLeft: '24px',
+                          marginTop: '0',
+                          marginBottom: '0',
+                          lineHeight: '1.6'
+                        }}>
+                          {criteria.exclusion_criteria.slice(0, 3).map((item, i) => (
+                            <li
+                              key={i}
+                              style={{
+                                color: '#333',
+                                marginBottom: '8px',
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word',
+                                overflowWrap: 'break-word',
+                                lineHeight: '1.6',
+                                  color: '#e0e0e0'
+                              }}
+                            >
+                              {item.description || item.raw_text || "N/A"}
+                            </li>
+                          ))}
+                          {criteria.exclusion_criteria.length > 3 && (
+                            <li style={{ color: '#999', fontSize: '12px' }}>
+                              +{criteria.exclusion_criteria.length - 3} more
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p style={{ marginTop: '12px', color: '#999', fontSize: '13px' }}>
+                    No criteria data available
+                  </p>
+                )}
+
+                <div style={{
+  marginTop: '16px',
+  padding: '12px 16px',
+  backgroundColor: '#2563eb',  // ✅ Blue box background
+  borderRadius: '8px',
+  border: '2px solid #1e40af',  // ✅ Darker blue border
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',  // ✅ Subtle shadow
+  display: 'inline-block'
+}}>
+  <button
+    className="btn-select-trial"
+    onClick={() => handleSelectTrial(trial)}
+    style={{
+      background: 'none',
+      border: 'none',
+      color: '#ffffff',
+      fontSize: '14px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      padding: '0',
+      transition: 'transform 0.2s ease',
+    }}
+    onMouseEnter={(e) => e.target.style.transform = 'scale(1.05)'}
+    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+  >
+    View Patient Matches →
+  </button>
+</div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </section>
+)}
+
+
+      {/* Step 3: MS4 Patient-Trial Matching Results */}
+      {showMatchResults && selectedTrial && (
+        <section className="match-results-section card">
+          <h2>Step 3: Patient-Trial Matching Results</h2>
+          <div className="match-info">
+            <p>
+              Trial: <strong>{selectedTrial?.nct_id || "Unknown"}</strong>
+            </p>
+            <p className="info-text">
+              MS4 will search <strong>all 1,097 cached patients</strong> and rank them by match percentage
+            </p>
+          </div>
+          
+          {/* MS4TrialMatchResults handles fetching from MS4's cache */}
+          <MS4TrialMatchResults trialData={selectedTrial} />
+        </section>
+      )}
     </div>
   );
 }

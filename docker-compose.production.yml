@@ -1,6 +1,7 @@
-# Docker Compose for Local Development
+# Docker Compose for DigitalOcean Production Deployment
+# Use this file when deploying to DigitalOcean droplets
 
-# Use this file for local testing and development
+version: '3.8'
 
 services:
 
@@ -10,7 +11,7 @@ services:
     container_name: ms2_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ms2_db
     ports:
       - '5432:5432'
@@ -23,6 +24,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
 
   # PostgreSQL Database for MS3
   postgres_ms3:
@@ -30,13 +32,13 @@ services:
     container_name: ms3_postgres
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ms3_db
     ports:
       - '5433:5432'
     volumes:
       - postgres_ms3_data:/var/lib/postgresql/data
-      - ./init-ms3-db.sql:/docker-entrypoint-initdb.d/init.sql  # ← Initialize schema on startup
+      - ./init-ms3-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - ms2_network
     healthcheck:
@@ -44,6 +46,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: always
 
   # MS1 Microservice - Clinical Trial Retriever
   ms1:
@@ -54,10 +57,10 @@ services:
     ports:
       - '8001:8001'
     environment:
-      - MS2_URL=http://ms2:8002/api/ms2/receive # ← receiver
+      - MS2_URL=http://ms2:8002/api/ms2/receive
     networks:
       - ms2_network
-    restart: unless-stopped
+    restart: always
 
   # MS2 Microservice - Clinical Trial Criteria Parser
   ms2:
@@ -70,8 +73,8 @@ services:
     env_file:
       - src/ms2/.env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
-      - MS1_URL=http://host.docker.internal:8001
+      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-postgres}@postgres:5432/ms2_db
+      - MS1_URL=http://ms1:8001
       - ENVIRONMENT=production
       - LOG_LEVEL=info
     depends_on:
@@ -80,9 +83,8 @@ services:
     networks:
       - ms2_network
     volumes:
-      - ./src:/app/src
       - ./data/ms2:/app/data/ms2
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:8002/api/ms2/health || exit 1']
       interval: 30s
@@ -100,23 +102,22 @@ services:
       - '8003:8003'
     environment:
       # Database Configuration
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres_ms3:5432/ms3_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:${DB_PASSWORD:-postgres}@postgres_ms3:5432/ms3_db
       # Data Configuration
       - DWH_PATH=/data/ms3/synthea
       - SYNTHEA_FHIR_GLOB=/data/ms3/synthea/*.json
       # API Configuration
-      - CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:8001,http://localhost:8002,http://localhost:8004
+      - CORS_ALLOW_ORIGINS=https://${API_BASE_DOMAIN:-localhost}
       - LOG_LEVEL=INFO
       - FORCE_RELOAD=0
     volumes:
-      # Mount Synthea FHIR JSON files as read-only
       - ./data/ms3/synthea:/data/ms3/synthea:ro
     depends_on:
       postgres_ms3:
         condition: service_healthy
     networks:
       - ms2_network
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:8003/health || exit 1']
       interval: 30s
@@ -133,53 +134,29 @@ services:
     ports:
       - '8004:8004'
     environment:
-      - MS2_URL=http://host.docker.internal:8002
-      - MS3_URL=http://host.docker.internal:8003
-    volumes:
-      - ./src:/app/src
-      - ./data/ms4:/app/data/ms4
+      - MS2_URL=http://ms2:8002
+      - MS3_URL=http://ms3:8003
     networks:
       - ms2_network
-    restart: unless-stopped
+    volumes:
+      - ./data/ms4:/app/data/ms4
+    restart: always
     depends_on:
       - ms3
 
-  # MS2 Test Runner
-  ms2-test:
-    build:
-      context: .
-      dockerfile: Dockerfile.ms2.test
-    container_name: ms2_test
-    environment:
-      - OPENAI_API_KEY=dummy-key-for-tests
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ms2_db
-      - MS1_URL=http://localhost:8001
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./poetry.lock:/app/poetry.lock
-    networks:
-      - ms2_network
-
-  # React Vite UI - Frontend Application (LOCAL DEVELOPMENT)
+  # React Vite UI - Frontend Application (PRODUCTION)
   ui:
     build:
       context: .
-      dockerfile: Dockerfile.ui-dev
+      dockerfile: Dockerfile.ui-production
+      args:
+        # Use environment variables set during deployment
+        VITE_API_SEARCH_URL: ${VITE_API_SEARCH_URL:-http://localhost:8001/search-trials}
+        VITE_API_DISPLAY_URL: ${VITE_API_DISPLAY_URL:-http://localhost:8002/api/ms2}
+        VITE_API_PHENOTYPE_URL: ${VITE_API_PHENOTYPE_URL:-http://localhost:8003/api/ms3}
     container_name: ui_service
     ports:
       - '5173:5173'
-    environment:
-      - NODE_ENV=development
-      # LOCAL: Use localhost for browser access during development
-      - VITE_API_SEARCH_URL=http://localhost:8001/search-trials
-      - VITE_API_DISPLAY_URL=http://localhost:8002/api/ms2
-      - VITE_API_PHENOTYPE_URL=http://localhost:8003/api/ms3
     depends_on:
       - ms1
       - ms2
@@ -187,13 +164,7 @@ services:
       - ms4
     networks:
       - ms2_network
-    volumes:
-      - ./src:/app/src
-      - ./public:/app/public
-      - /app/node_modules
-    stdin_open: true
-    tty: true
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:5173 || exit 1']
       interval: 30s

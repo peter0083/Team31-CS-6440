@@ -1,4 +1,6 @@
-# Development Dockerfile for React Vite UI
+# Local Development Dockerfile for React Vite UI
+# This version runs the dev server for live reloading
+
 FROM node:18-alpine
 
 WORKDIR /app

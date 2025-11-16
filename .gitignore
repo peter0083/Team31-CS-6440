@@ -9,8 +9,9 @@ dist/
 *.egg-info/
 .venv/
 src/ms2/.env
-
 .env.ui
+.env.pr
+.env.*
 
 # Poetry
 # poetry.lock # need to make it available for GitHub Actions for builds
@@ -62,3 +63,6 @@ Thumbs.db
 # Misc
 *.swp
 *~
+
+# MS3 patient data from Synthea
+data/ms3/

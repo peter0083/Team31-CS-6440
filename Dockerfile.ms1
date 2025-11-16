@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+RUN pip install --no-cache-dir fastapi uvicorn[standard] requests httpx pydantic
+
+# Copy the FastAPI app into the container
+COPY src/ms1/ClinicalTrialsFetcher.py /app/
+
+# Create data directory and copy mock data
+RUN mkdir -p /app/data/ms1
+# Copy JSON files - path is relative to repo root (where docker-compose.yml is)
+COPY data/ms1/*.json /app/data/ms1/
+
+# Expose the correct port
+EXPOSE 8001
+
+# Set Python path
+ENV PYTHONPATH=/app
+
+# Start FastAPI app
+CMD ["uvicorn", "ClinicalTrialsFetcher:app", "--host", "0.0.0.0", "--port", "8001"]

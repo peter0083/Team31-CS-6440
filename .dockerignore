@@ -62,7 +62,7 @@ npm-debug.log
 yarn-error.log
 
 # Data and temp files
-data/
+# data/ <--- need data folder for ms1, ms2, ms3
 tmp/
 temp/
 *.tmp
@@ -87,7 +87,6 @@ setup.sh
 .dockerignore
 docker-compose.override.yml
 
-
 # React/Vite build outputs
 dist/
 dist-ssr/
@@ -110,4 +109,3 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
