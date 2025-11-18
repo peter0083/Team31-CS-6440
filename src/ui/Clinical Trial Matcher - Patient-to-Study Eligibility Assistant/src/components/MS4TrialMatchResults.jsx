@@ -123,6 +123,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
     return "Poor Match";
   };
 
+
   // Loading state
   if (loading) {
     return (
@@ -258,6 +259,12 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
           const percentage = (result.match_percentage || 0).toFixed(0);
           const qualityClass = getMatchQualityClass(percentage);
           const qualityLabel = getMatchQualityLabel(percentage);
+          const matches = result.matches
+          const types = result.types
+          const fields = result.fields
+          const operators = result.operators
+          const values = result.values
+          const patient_values = result.patient_values
 
           return (
             <div
@@ -322,30 +329,41 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                   <div style={{ color: '#666', marginTop: '8px' }}>
                     Patient meets <strong>{percentage}</strong>% of the trial's eligibility criteria.
                   </div>
-
-                  {result.criteria && result.criteria.length > 0 && (
-                    <div style={{ marginTop: '12px' }}>
-                      <strong>Matching Criteria</strong>
-                      <div style={{ marginTop: '8px' }}>
-                        {result.criteria.map((criterion, idx) => (
-                          <div
-                            key={idx}
-                            style={{
-                              padding: '8px',
-                              backgroundColor: '#f0f0f0',
-                              borderRadius: '3px',
-                              marginBottom: '6px',
-                              fontSize: '13px',
-                              fontFamily: 'monospace',
-                              color: '#333',
-                            }}
-                          >
-                            {criterion.rawText || criterion.text}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <div style={{ color: '#666', marginTop: '8px' }}>
+                    <strong>Criteria</strong>
+                  </div>
+                     <table
+                        style={{
+                            borderCollapse: "collapse",
+                            border: "1px solid black",
+                        }}
+                     >
+                          <thead>
+                            <tr>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Matches</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Type</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Field</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Patient Value</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Operator</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Requirement</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                                {matches.map((match, i) => (
+                                  <tr key={i}>
+                                    {/* ✅ for true, ❌ for false */}
+                                    <td style={{ border: "1px solid black", padding: "4px" }}>
+                                      {match ? "✅" : "❌"}
+                                    </td>
+                                    <td style={{ border: "1px solid black", padding: "4px" }}>{types[i]}</td>
+                                    <td style={{ border: "1px solid black", padding: "4px" }}>{fields[i]}</td>
+                                    <td style={{ border: "1px solid black", padding: "4px" }}>{patient_values[i]}</td>
+                                    <td style={{ border: "1px solid black", padding: "4px" }}>{operators[i]}</td>
+                                    <td style={{ border: "1px solid black", padding: "4px" }}>{values[i]}</td>
+                                  </tr>
+                                ))}
+                          </tbody>
+                     </table>
                 </div>
               )}
             </div>
