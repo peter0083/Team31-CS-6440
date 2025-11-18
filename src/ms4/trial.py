@@ -1,7 +1,9 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from pydantic import BaseModel
+
+from src.ms4.criteria import Criteria
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +12,12 @@ class PatientMatch(BaseModel):
     """Result of matching a patient to a trial"""
     patient_id: str
     match_percentage: float
+    criteria_match_results: List[bool]
+    criteria_types: List[str]
+    criteria_fields: List[str]
+    criteria_operators: List[str]
+    criteria_values: List[str]
+    patient_values: List[str]
 
 
 class Trial:
@@ -47,6 +55,12 @@ class Trial:
         }
     
     def _evaluate_patient(self, patient: Dict[str, Any]) -> Optional[PatientMatch]:
+        match_results = []
+        types = []
+        fields = []
+        operators = []
+        values = []
+        p_values = []
         """Evaluate a single patient"""
         logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
         logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
@@ -60,9 +74,16 @@ class Trial:
         inclusion_total = len(self.inclusion_criteria)
         
         for criterion in self.inclusion_criteria:
-            if self._matches_criterion(patient, criterion):
+            match_results = criterion.evaluate(patient)
+            if match_results[0]:
                 inclusion_met += 1
-        
+            match_results.append(match_results[0])
+            types.append(match_results[1])
+            fields.append(match_results[2])
+            operators.append(match_results[3])
+            values.append(match_results[4])
+            p_values.append(match_results[5])
+
         if inclusion_total == 0:
             match_percentage = 100.0
         else:
@@ -72,12 +93,19 @@ class Trial:
         if match_percentage > 0:
             return PatientMatch(
                 patient_id=patient_id,
-                match_percentage=round(match_percentage, 2)
+                match_percentage=round(match_percentage, 4),
+                criteria_match_results = match_results,
+                criteria_types = types,
+                criteria_fields = fields,
+                criteria_operators = operators,
+                criteria_values = values,
+                patient_values = p_values,
             )
+
 
         return None
     
-    def _matches_criterion(self, patient: Dict[str, Any], criterion: Dict[str, Any]) -> bool:
+    def _matches_criterion(self, patient: Dict[str, Any], criterion: Dict[str, Any]) -> Tuple[bool,str,str,str,str,str]:
         """Check if patient matches a single criterion"""
         try:
             criterion_type = criterion.get("type", "")
@@ -87,7 +115,8 @@ class Trial:
             
             # Skip header/metadata rows (null values, generic identifiers)
             if value is None:
-                return True  # Neutral
+                #Changed to False (neutral should not qualify)
+                return False,criterion_type,field,operator, "NA", "NA"  # Neutral
             
             # Demographic criteria (age, gender, etc.)
             if criterion_type == "demographic":
@@ -96,7 +125,7 @@ class Trial:
                 patient_value = demographics.get(field)
                 
                 if patient_value is None:
-                    return False
+                    return False,criterion_type,field,operator, value, "NA"
                 
                 # Age comparisons
                 if field == "age":
@@ -114,9 +143,9 @@ class Trial:
                         elif operator == "=":
                             return pv == vv
                         else:
-                            return False
+                            return False,criterion_type,field,operator,value,patient_value
                     except (ValueError, TypeError):
-                        return False
+                        return False,criterion_type,field,operator,value,"Value / Type Error"
                 
                 # String comparisons (gender, race, etc.)
                 else:
@@ -127,14 +156,15 @@ class Trial:
                     elif operator == "!=":
                         return pv_str != v_str
                     else:  # If operator is neither "=" nor "!="
-                        return False
+                        return False,criterion_type,field,operator,value,patient_value
             
             # Condition/diagnosis (empty in current data)
             elif criterion_type == "condition":
                 conditions = patient.get("conditions", [])
                 if not conditions:
                     # Neutral - can't evaluate with no data
-                    return True
+                    # Changed to False (neutral should not qualify)
+                    return False,criterion_type,field,operator,value,"NA"
                 
                 identifier = criterion.get("identifier", [])
                 search_term = " ".join([str(x).lower() for x in identifier]) if identifier else str(value).lower()
@@ -148,19 +178,21 @@ class Trial:
                         # also check both description and code
                         if search_term in description or search_term in code:
                             logger.debug(f"[MATCH] Found '{search_term}' in condition: {description}")
-                            return True
+                            return True,criterion_type,field,operator,value,str(cond)
                     else:
                         # Fallback for string conditions
                         cond_str = str(cond).lower()
                         if search_term in cond_str:
-                            return True
+                            return True,criterion_type,field,operator,value,str(cond)
 
-                return False
+                return False,criterion_type,field,operator,value,"NA"
             
             # Other criterion types - neutral (can't evaluate)
             else:
-                return True
+                # Changed to False (neutral should not qualify)
+                return False,criterion_type,field,operator,value,"NA"
         
         except Exception as e:
             logger.debug(f"[CRITERION] Error: {e}")
-            return True  # Neutral on error
+            # Changed to False (neutral should not qualify)
+            return False,"Error","","","","NA"  # Neutral on error
