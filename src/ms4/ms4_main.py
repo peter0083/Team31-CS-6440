@@ -53,10 +53,10 @@ async def wait_for_ms3_initialization(
                     data = response.json()
                     
                     # Check if initialization is complete
-                    is_initialized = data.get("initialized", False)
-                    is_ready = data.get("ready", False)
-                    status = data.get("status", "unknown")
-                    patients_loaded = data.get("patients_loaded", 0)
+                    is_initialized = data.get("is_initialized", False)
+                    is_ready = data.get("is_initialized", False)
+                    status = "ready" if is_initialized else "loading"
+                    patients_loaded = data.get("total_records", 0)
                     
                     logger.info(
                         f"[MS3 WAIT] Status: {status} | "

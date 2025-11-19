@@ -1,8 +1,5 @@
 # Docker Compose for DigitalOcean Production Deployment
 # Use this file when deploying to DigitalOcean droplets
-
-version: '3.8'
-
 services:
 
   # PostgreSQL Database for MS2
@@ -151,9 +148,9 @@ services:
       dockerfile: Dockerfile.ui-production
       args:
         # Use environment variables set during deployment
-        VITE_API_SEARCH_URL: ${VITE_API_SEARCH_URL:-http://localhost:8001/search-trials}
-        VITE_API_DISPLAY_URL: ${VITE_API_DISPLAY_URL:-http://localhost:8002/api/ms2}
-        VITE_API_PHENOTYPE_URL: ${VITE_API_PHENOTYPE_URL:-http://localhost:8003/api/ms3}
+        VITE_API_SEARCH_URL: http://104.131.175.170:8001/search-trials
+        VITE_API_DISPLAY_URL: http://104.131.175.170:8002/api/ms2
+        VITE_API_PHENOTYPE_URL: http://104.131.175.170:8003/api/ms3
     container_name: ui_service
     ports:
       - '5173:5173'
