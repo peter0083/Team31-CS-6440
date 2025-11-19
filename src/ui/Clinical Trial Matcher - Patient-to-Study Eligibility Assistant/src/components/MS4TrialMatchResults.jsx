@@ -350,8 +350,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                           </thead>
                           <tbody>
                                 {matches.map((match, i) => (
-                                  <tr key={i}>
-                                    {/* ✅ for true, ❌ for false */}
+                                  <tr>
                                     <td style={{ border: "1px solid black", padding: "4px" }}>
                                       {match ? "✅" : "❌"}
                                     </td>

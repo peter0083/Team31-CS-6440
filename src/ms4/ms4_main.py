@@ -297,7 +297,7 @@ async def get_info():
 
 @app.post("/match-trial")
 async def match_trial_endpoint(request: TrialMatchRequest):
-    return {
+    '''return {
       "nct_id": "NCT06129539",
       "total_patients_searched": 1097,
       "matched_count": 1097,
@@ -420,8 +420,8 @@ async def match_trial_endpoint(request: TrialMatchRequest):
           "patient_values": [],
         }
       ]
-    }
-    '''cache = get_patient_cache()
+    }'''
+    cache = get_patient_cache()
     
     # Check if cache is loaded
     if not cache.is_loaded:
@@ -505,7 +505,7 @@ async def match_trial_endpoint(request: TrialMatchRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Trial matching failed: {str(e)}"
-        )'''
+        )
 
 
 @app.get("/debug/patient-structure")

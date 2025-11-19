@@ -12,11 +12,11 @@ class PatientMatch(BaseModel):
     """Result of matching a patient to a trial"""
     patient_id: str
     match_percentage: float
-    criteria_match_results: List[bool]
-    criteria_types: List[str]
-    criteria_fields: List[str]
-    criteria_operators: List[str]
-    criteria_values: List[str]
+    matches: List[bool]
+    types: List[str]
+    fields: List[str]
+    operators: List[str]
+    values: List[str]
     patient_values: List[str]
 
 
@@ -55,12 +55,12 @@ class Trial:
         }
     
     def _evaluate_patient(self, patient: Dict[str, Any]) -> Optional[PatientMatch]:
-        match_results = []
+        matches = []
         types = []
         fields = []
         operators = []
         values = []
-        p_values = []
+        patient_values = []
         """Evaluate a single patient"""
         logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
         logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
@@ -77,12 +77,12 @@ class Trial:
             match_results = criterion.evaluate(patient)
             if match_results[0]:
                 inclusion_met += 1
-            match_results.append(match_results[0])
+            matches.append(match_results[0])
             types.append(match_results[1])
             fields.append(match_results[2])
             operators.append(match_results[3])
             values.append(match_results[4])
-            p_values.append(match_results[5])
+            patient_values.append(match_results[5])
 
         if inclusion_total == 0:
             match_percentage = 100.0
@@ -94,12 +94,12 @@ class Trial:
             return PatientMatch(
                 patient_id=patient_id,
                 match_percentage=round(match_percentage, 4),
-                criteria_match_results = match_results,
-                criteria_types = types,
-                criteria_fields = fields,
-                criteria_operators = operators,
-                criteria_values = values,
-                patient_values = p_values,
+                matches = matches,
+                types = types,
+                fields = fields,
+                operators = operators,
+                values = values,
+                patient_values = patient_values,
             )
 
 
@@ -133,15 +133,15 @@ class Trial:
                         pv = int(patient_value)
                         vv = int(value)
                         if operator == ">=":
-                            return pv >= vv
+                            return pv >= vv,criterion_type,field,operator,value,patient_value
                         elif operator == "<=":
-                            return pv <= vv
+                            return pv <= vv,criterion_type,field,operator,value,patient_value
                         elif operator == ">":
-                            return pv > vv
+                            return pv > vv,criterion_type,field,operator,value,patient_value
                         elif operator == "<":
-                            return pv < vv
+                            return pv < vv,criterion_type,field,operator,value,patient_value
                         elif operator == "=":
-                            return pv == vv
+                            return pv == vv,criterion_type,field,operator,value,patient_value
                         else:
                             return False,criterion_type,field,operator,value,patient_value
                     except (ValueError, TypeError):
@@ -152,9 +152,9 @@ class Trial:
                     pv_str = str(patient_value).lower()
                     v_str = str(value).lower()
                     if operator == "=":
-                        return pv_str == v_str
+                        return pv_str == v_str,criterion_type,field,operator,value,patient_value
                     elif operator == "!=":
-                        return pv_str != v_str
+                        return pv_str != v_str,criterion_type,field,operator,value,patient_value
                     else:  # If operator is neither "=" nor "!="
                         return False,criterion_type,field,operator,value,patient_value
             
@@ -195,4 +195,4 @@ class Trial:
         except Exception as e:
             logger.debug(f"[CRITERION] Error: {e}")
             # Changed to False (neutral should not qualify)
-            return False,"Error","","","","NA"  # Neutral on error
+            return False,"CRITERION ERROR","-","-","-","-"  # Neutral on error
