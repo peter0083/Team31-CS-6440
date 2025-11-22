@@ -7,7 +7,12 @@ WORKDIR /app
 
 # Accept build-time arguments for API endpoints
 ARG VITE_API_SEARCH_URL=http://localhost:8001/search-trials
-ARG VITE_API_DISPLAY_URL=http://localhost:8002/display
+ARG VITE_API_DISPLAY_URL=http://localhost:8002/api/ms2
+ARG VITE_API_PHENOTYPE_URL=http://localhost:8003/api/ms3
+ARG VITE_MS2_HEALTH_URL=http://localhost:8002/api/ms2/health
+ARG VITE_API_MS4_URL=http://localhost:8004
+ARG VITE_MS3_INIT_URL=http://localhost:8003/api/ms3/initialization-status
+ARG VITE_API_MS2_URL=http://localhost:8002
 
 # Copy source code
 COPY . .
@@ -18,6 +23,11 @@ RUN npm install
 # Build the application with environment variables
 RUN VITE_API_SEARCH_URL=$VITE_API_SEARCH_URL \
     VITE_API_DISPLAY_URL=$VITE_API_DISPLAY_URL \
+    VITE_API_PHENOTYPE_URL=$VITE_API_PHENOTYPE_URL \
+    VITE_MS2_HEALTH_URL=$VITE_MS2_HEALTH_URL \
+    VITE_API_MS4_URL=$VITE_API_MS4_URL \
+    VITE_MS3_INIT_URL=$VITE_MS3_INIT_URL \
+    VITE_API_MS2_URL=$VITE_API_MS2_URL \
     npm run build
 
 # Production stage - use nginx to serve static files

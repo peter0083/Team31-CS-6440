@@ -12,6 +12,7 @@ class PatientMatch(BaseModel):
     """Result of matching a patient to a trial"""
     patient_id: str
     match_percentage: float
+    isInclusion: List[bool]
     matches: List[bool]
     types: List[str]
     fields: List[str]
@@ -55,6 +56,7 @@ class Trial:
         }
     
     def _evaluate_patient(self, patient: Dict[str, Any]) -> Optional[PatientMatch]:
+        isInclusion = []
         matches = []
         types = []
         fields = []
@@ -63,7 +65,10 @@ class Trial:
         patient_values = []
         """Evaluate a single patient"""
         logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
+        if 'conditions' in patient:
+            logger.info(f"[DEBUG] Patient conditions: {patient['conditions']}")
         logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
+        logger.info(f"[DEBUG] Criteria length: {len(self.inclusion_criteria)}")
 
         # patient data is nested under "general"
         patient_id = patient.get("general", {}).get("patient_id", "UNKNOWN")
@@ -74,9 +79,10 @@ class Trial:
         inclusion_total = len(self.inclusion_criteria)
         
         for criterion in self.inclusion_criteria:
-            match_results = criterion.evaluate(patient)
+            match_results = self._matches_criterion(patient,criterion)
             if match_results[0]:
                 inclusion_met += 1
+            isInclusion.append(True)
             matches.append(match_results[0])
             types.append(match_results[1])
             fields.append(match_results[2])
@@ -84,23 +90,34 @@ class Trial:
             values.append(match_results[4])
             patient_values.append(match_results[5])
 
-        if inclusion_total == 0:
-            match_percentage = 100.0
-        else:
-            match_percentage = (inclusion_met / inclusion_total) * 100.0
+        for criterion in self.exclusion_criteria:
+            match_results = self._matches_criterion(patient,criterion)
+            if match_results[0]:
+                inclusion_met = 0
+            isInclusion.append(False)
+            matches.append(match_results[0])
+            types.append(match_results[1])
+            fields.append(match_results[2])
+            operators.append(match_results[3])
+            values.append(match_results[4])
+            patient_values.append(match_results[5])
+
+
+        match_percentage = (inclusion_met / inclusion_total) * 100.0
         
         # Only return patients with >0% match
-        if match_percentage > 0:
-            return PatientMatch(
-                patient_id=patient_id,
-                match_percentage=round(match_percentage, 4),
-                matches = matches,
-                types = types,
-                fields = fields,
-                operators = operators,
-                values = values,
-                patient_values = patient_values,
-            )
+        #if match_percentage > 0:
+        return PatientMatch(
+            patient_id=patient_id,
+            match_percentage=round(match_percentage, 4),
+            isInclusion=isInclusion,
+            matches = matches,
+            types = types,
+            fields = fields,
+            operators = operators,
+            values = values,
+            patient_values = patient_values,
+        )
 
 
         return None
@@ -116,7 +133,7 @@ class Trial:
             # Skip header/metadata rows (null values, generic identifiers)
             if value is None:
                 #Changed to False (neutral should not qualify)
-                return False,criterion_type,field,operator, "NA", "NA"  # Neutral
+                return False,criterion_type,field,operator, "None", "Not Pulled"  # Neutral
             
             # Demographic criteria (age, gender, etc.)
             if criterion_type == "demographic":
@@ -126,12 +143,39 @@ class Trial:
                 
                 if patient_value is None:
                     return False,criterion_type,field,operator, value, "NA"
-                
+
+                # Age comparisons
+                if field == "gender":
+                    try:
+                        pv = str(patient_value)
+                        vv = str(value)
+                        if value == "all":
+                            return True, criterion_type, field, operator, value, patient_value
+                        else:
+                            return pv == vv, criterion_type, field, operator, value, patient_value
+                    except (ValueError, TypeError):
+                        logger.info(
+                            f"[CRITERION] Match Error 1: field {field} operator {operator} value {value} patient value {patient_value}")
+                        return False, criterion_type, field, operator, value, "Value / Type Error"
+
+                # Pregnancy status
+                if field == "pregnancy_satus":
+                    try:
+                        pv = str(patient_value)
+                        vv = str(value)
+                        return pv == vv, criterion_type, field, operator, value, patient_value
+                    except (ValueError, TypeError):
+                        logger.info(
+                            f"[CRITERION] Match Error 1: field {field} operator {operator} value {value} patient value {patient_value}")
+                        return False, criterion_type, field, operator, value, "Value / Type Error"
+
                 # Age comparisons
                 if field == "age":
                     try:
                         pv = int(patient_value)
                         vv = int(value)
+                        if vv == "NA":
+                            return True, criterion_type, field, operator, value, patient_value
                         if operator == ">=":
                             return pv >= vv,criterion_type,field,operator,value,patient_value
                         elif operator == "<=":
@@ -145,6 +189,7 @@ class Trial:
                         else:
                             return False,criterion_type,field,operator,value,patient_value
                     except (ValueError, TypeError):
+                        logger.info(f"[CRITERION] Match Error 1: field {field} operator {operator} value {value} patient value {patient_value}")
                         return False,criterion_type,field,operator,value,"Value / Type Error"
                 
                 # String comparisons (gender, race, etc.)
@@ -190,9 +235,13 @@ class Trial:
             # Other criterion types - neutral (can't evaluate)
             else:
                 # Changed to False (neutral should not qualify)
+                logger.info(
+                    f"[CRITERION] Match Error 2: field {field} operator {operator} value {value}")
+
                 return False,criterion_type,field,operator,value,"NA"
         
         except Exception as e:
-            logger.debug(f"[CRITERION] Error: {e}")
+
+            logger.debug(f"[CRITERION] MATCH Error: {e}")
             # Changed to False (neutral should not qualify)
-            return False,"CRITERION ERROR","-","-","-","-"  # Neutral on error
+            return False,"CRITERION MATCH ERROR","-","-","-","-"  # Neutral on error

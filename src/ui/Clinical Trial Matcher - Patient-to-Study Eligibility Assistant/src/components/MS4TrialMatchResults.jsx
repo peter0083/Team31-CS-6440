@@ -259,6 +259,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
           const percentage = (result.match_percentage || 0).toFixed(0);
           const qualityClass = getMatchQualityClass(percentage);
           const qualityLabel = getMatchQualityLabel(percentage);
+          const isInclusion = result.isInclusion
           const matches = result.matches
           const types = result.types
           const fields = result.fields
@@ -323,14 +324,11 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
               {/* Expanded Details */}
               {isExpanded && (
                 <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #dee2e6' }}>
-                  <div style={{ fontSize: '14px', color: '#333' }}>
-                    <strong>Eligibility Criteria Met</strong>
-                  </div>
                   <div style={{ color: '#666', marginTop: '8px' }}>
                     Patient meets <strong>{percentage}</strong>% of the trial's eligibility criteria.
                   </div>
                   <div style={{ color: '#666', marginTop: '8px' }}>
-                    <strong>Criteria</strong>
+                    <strong>Inclusion Criteria</strong>
                   </div>
                      <table
                         style={{
@@ -349,21 +347,60 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                             </tr>
                           </thead>
                           <tbody>
-                                {matches.map((match, i) => (
-                                  <tr>
-                                    <td style={{ border: "1px solid black", padding: "4px" }}>
-                                      {match ? "✅" : "❌"}
-                                    </td>
-                                    <td style={{ border: "1px solid black", padding: "4px" }}>{types[i]}</td>
-                                    <td style={{ border: "1px solid black", padding: "4px" }}>{fields[i]}</td>
-                                    <td style={{ border: "1px solid black", padding: "4px" }}>{patient_values[i]}</td>
-                                    <td style={{ border: "1px solid black", padding: "4px" }}>{operators[i]}</td>
-                                    <td style={{ border: "1px solid black", padding: "4px" }}>{values[i]}</td>
-                                  </tr>
-                                ))}
+                                {matches.map((match, i) =>
+                                    isInclusion[i] ? (
+                                      <tr key={i}>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>
+                                          {match ? "✅" : "❌"}
+                                        </td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{types[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{fields[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{patient_values[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{operators[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{values[i]}</td>
+                                      </tr>
+                                    ) : null
+                                  )}
+                          </tbody>
+                     </table>
+                    <div style={{ color: '#666', marginTop: '8px' }}>
+                    <strong>Exclusion Criteria</strong>
+                  </div>
+                     <table
+                        style={{
+                            borderCollapse: "collapse",
+                            border: "1px solid black",
+                        }}
+                     >
+                          <thead>
+                            <tr>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Matches</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Type</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Field</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Patient Value</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Operator</th>
+                              <th style={{ border: "1px solid black", padding: "4px" }}>Requirement</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                                {matches.map((match, i) =>
+                                    isInclusion[i]==false ? (
+                                      <tr key={i}>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>
+                                          {match ? "✅" : "❌"}
+                                        </td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{types[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{fields[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{patient_values[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{operators[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" }}>{values[i]}</td>
+                                      </tr>
+                                    ) : null
+                                  )}
                           </tbody>
                      </table>
                 </div>
+
               )}
             </div>
           );

@@ -53,10 +53,10 @@ async def wait_for_ms3_initialization(
                     data = response.json()
                     
                     # Check if initialization is complete
-                    is_initialized = data.get("initialized", False)
-                    is_ready = data.get("ready", False)
-                    status = data.get("status", "unknown")
-                    patients_loaded = data.get("patients_loaded", 0)
+                    is_initialized = data.get("is_initialized", False)
+                    is_ready = data.get("is_initialized", False)
+                    status = "ready" if is_initialized else "loading"
+                    patients_loaded = data.get("total_records", 0)
                     
                     logger.info(
                         f"[MS3 WAIT] Status: {status} | "
@@ -297,130 +297,6 @@ async def get_info():
 
 @app.post("/match-trial")
 async def match_trial_endpoint(request: TrialMatchRequest):
-    '''return {
-      "nct_id": "NCT06129539",
-      "total_patients_searched": 1097,
-      "matched_count": 1097,
-      "results_returned": 10,
-      "filter_applied": {
-        "sort_by": "match_percentage",
-        "sort_order": "descending",
-        "min_match_percentage": 0,
-        "limit": 10
-      },
-      "ranked_results": [
-        {
-          "patient_id": "d79f2406-212d-79d3-bcac-84592c75514c",
-          "match_percentage": 87.5,
-          "rank": 1,
-          "matches": [True,False,True],
-          "types": ["TypeA", "TypeB", "TypeC"],
-          "fields": ["FieldA", "FieldB", "FieldC"],
-          "operators": ["==", "<=", ">="],
-          "values": ["good",5,10],
-          "patient_values": ["good", 17, 22],
-        },
-        {
-          "patient_id": "7c50b099-cfb9-64b4-a5cf-5481dd546d09",
-          "match_percentage": 80.5,
-          "rank": 2,
-          "matches": [False, False,],
-          "types": ["TypeA", "TypeB"],
-          "fields": ["FieldA", "FieldB"],
-          "operators": ["==", "<="],
-          "values": ["bad", 5],
-          "patient_values": ["good", 17],
-        },
-        {
-          "patient_id": "a37071bf-99a8-e91b-5130-79505f8bac49",
-          "match_percentage": 80.5,
-          "rank": 3,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "15c1e3a5-f50e-2b54-14df-81f2605d9382",
-          "match_percentage": 80.5,
-          "rank": 4,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "9b1717c4-329a-150d-4193-a5ad5ed0af65",
-          "match_percentage": 75.5,
-          "rank": 5,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "70e51696-9f7f-cb78-7930-89c5dc212047",
-          "match_percentage": 70.5,
-          "rank": 6,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "fa47522a-591e-1bc6-fcbf-48ba5a36e2e8",
-          "match_percentage": 65.5,
-          "rank": 7,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "f5c268eb-6ccd-0ed2-2b60-967fb8f3e143",
-          "match_percentage": 63.5,
-          "rank": 8,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "51d1b218-4104-036e-8674-1d8dc4472031",
-          "match_percentage": 64.5,
-          "rank": 9,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        },
-        {
-          "patient_id": "befa5995-5fa6-33fb-ad58-41ccd7049f8f",
-          "match_percentage": 0.5,
-          "rank": 10,
-          "matches": [],
-          "types": [],
-          "fields": [],
-          "operators": [],
-          "values": [],
-          "patient_values": [],
-        }
-      ]
-    }'''
     cache = get_patient_cache()
     
     # Check if cache is loaded
