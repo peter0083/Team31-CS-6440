@@ -66,7 +66,7 @@ class Trial:
         """Evaluate a single patient"""
         logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
         if 'conditions' in patient:
-            logger.info(f"[DEBUG] Patient conditions: {patient['conditions']}")
+            logger.info(f"[DEBUG] aaPatient conditions: {patient['conditions']}")
         logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
         logger.info(f"[DEBUG] Criteria length: {len(self.inclusion_criteria)}")
 
@@ -159,7 +159,7 @@ class Trial:
                         return False, criterion_type, field, operator, value, "Value / Type Error"
 
                 # Pregnancy status
-                if field == "pregnancy_satus":
+                '''if field == "pregnancy_satus":
                     try:
                         pv = str(patient_value)
                         vv = str(value)
@@ -167,7 +167,7 @@ class Trial:
                     except (ValueError, TypeError):
                         logger.info(
                             f"[CRITERION] Match Error 1: field {field} operator {operator} value {value} patient value {patient_value}")
-                        return False, criterion_type, field, operator, value, "Value / Type Error"
+                        return False, criterion_type, field, operator, value, "Value / Type Error"'''
 
                 # Age comparisons
                 if field == "age":
@@ -205,15 +205,16 @@ class Trial:
             
             # Condition/diagnosis (empty in current data)
             elif criterion_type == "condition":
+                logger.info(f"[DEBUG] In Conditions...")
                 conditions = patient.get("conditions", [])
                 if not conditions:
                     # Neutral - can't evaluate with no data
                     # Changed to False (neutral should not qualify)
-                    return False,criterion_type,field,operator,value,"NA"
+                    return False,criterion_type,field,operator,value,"No Conditions Found"
                 
                 identifier = criterion.get("identifier", [])
                 search_term = " ".join([str(x).lower() for x in identifier]) if identifier else str(value).lower()
-                
+                logger.info(f"[DEBUG] Search Term: {search_term}")
                 for cond in conditions:
                     if isinstance(cond, dict):
                         # Check "description" column in MS3's conditions table
