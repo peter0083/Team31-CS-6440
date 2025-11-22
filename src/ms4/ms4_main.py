@@ -327,6 +327,7 @@ async def match_trial_endpoint(request: TrialMatchRequest):
         # Extract matched patients
         trial_result = result.get("results", {})
         matched_patients = trial_result.get("matched_patients", [])
+        excluded_patients = trial_result.get("excluded_patients", [])
         
         logger.info(f"[MATCH] Trial {request.nct_id}: {len(matched_patients)} "
                     f"patients matched")
@@ -337,6 +338,8 @@ async def match_trial_endpoint(request: TrialMatchRequest):
                 p for p in matched_patients
                 if p.match_percentage >= request.min_match
             ]
+
+        ###Filter is not needed for excluded_patients
         
         # Sort by specified field
         reverse_sort = request.order.lower() == "descending"
@@ -347,10 +350,16 @@ async def match_trial_endpoint(request: TrialMatchRequest):
         elif request.sort_by == "patient_id":
             matched_patients.sort(key=lambda x: x.patient_id,
                                 reverse=reverse_sort)
-        
+
+        #sort excluded patients
+        excluded_patients.sort(key=lambda x: x.match_percentage)
+
         # Apply limit
-        if request.limit:
+        if request.limit and len(matched_patients) >= request.limit:
             matched_patients = matched_patients[:request.limit]
+
+        if request.limit and len(excluded_patients) >= request.limit:
+            excluded_patients = excluded_patients[:request.limit]
         
         # Add ranks
         ranked_results = []
@@ -358,19 +367,29 @@ async def match_trial_endpoint(request: TrialMatchRequest):
             patient_dict = patient.__dict__.copy()
             patient_dict["rank"] = rank
             ranked_results.append(patient_dict)
+
+        ranked_excluded_patients = []
+        for rank, patient in enumerate(excluded_patients, 1):
+            patient_dict = patient.__dict__.copy()
+            patient_dict["rank"] = rank
+            ranked_excluded_patients.append(patient_dict)
         
         return {
             "nct_id": request.nct_id,
             "total_patients_searched": len(patient_ids),
             "matched_count": len(trial_result.get("matched_patients", [])),
+            "exclusion_count": len(trial_result.get("excluded_patients", [])),
+            "error_count": len(cache.patients)-(len(trial_result.get("excluded_patients", []))+len(trial_result.get("matched_patients", []))),
             "results_returned": len(ranked_results),
+            "exclusions_returned": len(ranked_excluded_patients),
             "filter_applied": {
                 "sort_by": request.sort_by,
                 "sort_order": request.order,
                 "min_match_percentage": request.min_match,
                 "limit": request.limit
             },
-            "ranked_results": ranked_results
+            "ranked_results": ranked_results,
+            "ranked_exclusions": ranked_excluded_patients
         }
     
     except HTTPException:

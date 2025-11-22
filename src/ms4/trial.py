@@ -34,25 +34,32 @@ class Trial:
         """Evaluate patients against trial criteria"""
         logger.info(f"[TRIAL] Evaluating {len(patients)} patients")
         
-        matched_patients: List[PatientMatch] = []
+        all_patients: List[PatientMatch] = []
         
         for patient in patients:
             try:
                 match = self._evaluate_patient(patient)
                 if match:
-                    matched_patients.append(match)
+                    all_patients.append(match)
             except Exception as e:
                 logger.warning(f"[TRIAL] Error: {e}")
                 continue
-        
+
+        matched_patients: List[PatientMatch] = [p for p in all_patients if p.match_percentage >=0]
         matched_patients.sort(key=lambda x: x.match_percentage, reverse=True)
+        logger.info(f"[TRIAL] Found {len(matched_patients)} matches")
+
+        excluded_patients: List[PatientMatch] = [p for p in all_patients if p.match_percentage < 0]
+        excluded_patients.sort(key=lambda x: x.match_percentage)
         logger.info(f"[TRIAL] Found {len(matched_patients)} matches")
         
         return {
             "trial_nct_id": self.nct_id,
             "total_patients_evaluated": len(patients),
             "matched_patients": matched_patients,
+            "excluded_patients": excluded_patients,
             "total_matched": len(matched_patients),
+            "total_excluded": len(excluded_patients),
         }
     
     def _evaluate_patient(self, patient: Dict[str, Any]) -> Optional[PatientMatch]:
@@ -64,16 +71,16 @@ class Trial:
         values = []
         patient_values = []
         """Evaluate a single patient"""
-        logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
-        if 'conditions' in patient:
-            logger.info(f"[DEBUG] aaPatient conditions: {patient['conditions']}")
-        logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
-        logger.info(f"[DEBUG] Criteria length: {len(self.inclusion_criteria)}")
+        ###logger.info(f"[DEBUG] Patient keys: {list(patient.keys())}")
+        ###if 'conditions' in patient:
+            ###logger.info(f"[DEBUG] aaPatient conditions: {patient['conditions']}")
+        ###logger.info(f"[DEBUG] Patient data sample: {str(patient)[:200]}")
+        ###logger.info(f"[DEBUG] Criteria length: {len(self.inclusion_criteria)}")
 
         # patient data is nested under "general"
         patient_id = patient.get("general", {}).get("patient_id", "UNKNOWN")
 
-        logger.info(f"[DEBUG] Extracted patient_id: {patient_id}")
+        ###logger.info(f"[DEBUG] Extracted patient_id: {patient_id}")
 
         inclusion_met = 0
         inclusion_total = len(self.inclusion_criteria)
@@ -84,26 +91,30 @@ class Trial:
                 inclusion_met += 1
             isInclusion.append(True)
             matches.append(match_results[0])
-            types.append(match_results[1])
-            fields.append(match_results[2])
-            operators.append(match_results[3])
-            values.append(match_results[4])
-            patient_values.append(match_results[5])
+            types.append(str(match_results[1]))
+            fields.append(str(match_results[2]))
+            operators.append(str(match_results[3]))
+            values.append(str(match_results[4]))
+            patient_values.append(str(match_results[5]))
+
+        exclusion_met = 0
+        exclusion_total = len(self.inclusion_criteria)
 
         for criterion in self.exclusion_criteria:
             match_results = self._matches_criterion(patient,criterion)
             if match_results[0]:
                 inclusion_met = 0
+                exclusion_met += 1
             isInclusion.append(False)
             matches.append(match_results[0])
-            types.append(match_results[1])
-            fields.append(match_results[2])
-            operators.append(match_results[3])
-            values.append(match_results[4])
-            patient_values.append(match_results[5])
+            types.append(str(match_results[1]))
+            fields.append(str(match_results[2]))
+            operators.append(str(match_results[3]))
+            values.append(str(match_results[4]))
+            patient_values.append(str(match_results[5]))
 
 
-        match_percentage = (inclusion_met / inclusion_total) * 100.0
+        match_percentage = (inclusion_met / inclusion_total) * 100.0 - (exclusion_met / exclusion_total) * 100.0
         
         # Only return patients with >0% match
         #if match_percentage > 0:
@@ -154,8 +165,7 @@ class Trial:
                         else:
                             return pv == vv, criterion_type, field, operator, value, patient_value
                     except (ValueError, TypeError):
-                        logger.info(
-                            f"[CRITERION] Match Error 1: field {field} operator {operator} value {value} patient value {patient_value}")
+                        logger.info(f"[CRITERION] Match Error 1: field {field} operator {operator} value {value} patient value {patient_value}")
                         return False, criterion_type, field, operator, value, "Value / Type Error"
 
                 # Pregnancy status
@@ -205,7 +215,7 @@ class Trial:
             
             # Condition/diagnosis (empty in current data)
             elif criterion_type == "condition":
-                logger.info(f"[DEBUG] In Conditions...")
+                ###logger.info(f"[DEBUG] In Conditions...")
                 conditions = patient.get("conditions", [])
                 if not conditions:
                     # Neutral - can't evaluate with no data
@@ -213,8 +223,9 @@ class Trial:
                     return False,criterion_type,field,operator,value,"No Conditions Found"
                 
                 identifier = criterion.get("identifier", [])
-                search_term = " ".join([str(x).lower() for x in identifier]) if identifier else str(value).lower()
-                logger.info(f"[DEBUG] Search Term: {search_term}")
+                #search_term = " ".join([str(x).lower() for x in identifier]) if identifier else str(value).lower()
+                search_term = value.lower()
+                ###logger.info(f"[DEBUG] Search Term: {search_term}")
                 for cond in conditions:
                     if isinstance(cond, dict):
                         # Check "description" column in MS3's conditions table
@@ -223,8 +234,8 @@ class Trial:
 
                         # also check both description and code
                         if search_term in description or search_term in code:
-                            logger.debug(f"[MATCH] Found '{search_term}' in condition: {description}")
-                            return True,criterion_type,field,operator,value,str(cond)
+                            ###logger.debug(f"[MATCH] Found '{search_term}' in condition: {description}")
+                            return True,criterion_type,field,operator,value,str(description)
                     else:
                         # Fallback for string conditions
                         cond_str = str(cond).lower()
@@ -236,8 +247,7 @@ class Trial:
             # Other criterion types - neutral (can't evaluate)
             else:
                 # Changed to False (neutral should not qualify)
-                logger.info(
-                    f"[CRITERION] Match Error 2: field {field} operator {operator} value {value}")
+                logger.info(f"[CRITERION] Match Error 2: field {field} operator {operator} value {value}")
 
                 return False,criterion_type,field,operator,value,"NA"
         

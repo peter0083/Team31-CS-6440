@@ -4,9 +4,12 @@ import React, { useState, useEffect } from "react";
 
 const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
   const [matchResults, setMatchResults] = useState([]);
+  const [exclusion_count, setExclusionCount] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expandedPatient, setExpandedPatient] = useState(null);
+  const [expandedExcluded, setExpandedExcluded] = useState(null);
   const [sortBy, setSortBy] = useState("score");
 
   const API_MS4_URL = import.meta.env.VITE_API_MS4_URL || "http://localhost:8004";
@@ -64,6 +67,9 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
       const results = data.ranked_results || [];
       console.log("✅ Parsed results:", results);
 
+      setExclusionCount(data.exclusion_count || 0);
+      console.log("✅ Parsed exclusion_count:", exclusion_count);
+
       const sorted = sortResults(results);
       setMatchResults(sorted);
     } catch (err) {
@@ -103,10 +109,12 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
     }
   };
 
-
-
   const togglePatientExpanded = (patientId) => {
     setExpandedPatient(expandedPatient === patientId ? null : patientId);
+  };
+
+ const toggleExpandedExclude = (patientId) => {
+    setExpandedExcluded(expandedExcluded === patientId ? null : patientId);
   };
 
   const getMatchQualityClass = (percentage) => {
@@ -232,11 +240,40 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
             >
               {matchResults.length}
             </div>
+
+          </div>
+          <div>
+            <strong>Excluded Patients:</strong>
+            <div
+              style={{
+                color: "#FFFF00",
+                fontWeight: "600",
+                marginTop: "4px",
+                fontSize: "18px",
+              }}
+            >
+              {exclusion_count}
+            </div>
+
+          </div>
+          <div>
+            <strong>Error Patients:</strong>
+            <div
+              style={{
+                color: "#FF0000",
+                fontWeight: "600",
+                marginTop: "4px",
+                fontSize: "18px",
+              }}
+            >
+              {0}
+            </div>
+
           </div>
         </div>
       </div>
 
-      {/* Results Summary */}
+      {/* Match Results Summary */}
       <div
         style={{
           padding: "15px",
@@ -248,7 +285,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
           fontWeight: "500",
         }}
       >
-        ✅ Found <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} match for trial <strong>{trialId}</strong>
+        ✅ Displaying the top <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} match for trial <strong>{trialId}</strong>
         <strong>{trialId}</strong>
       </div>
 
@@ -403,9 +440,33 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
 
               )}
             </div>
+
           );
+
         })}
+
+    {/* Match Results Summary */}
+      <div
+        style={{
+          padding: "15px",
+          backgroundColor: "#eaea00",
+          color: "#757500",
+          borderRadius: "4px",
+          marginBottom: "20px",
+          textAlign: "center",
+          fontWeight: "500",
+        }}
+      >
+        ⚠️ Displaying top <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} exclusions for trial <strong>{trialId}</strong>
+        <strong>{trialId}</strong>
       </div>
+            <div>
+
+
+
+            </div>
+      </div>
+
     </div>
   );
 };
