@@ -242,34 +242,8 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
             </div>
 
           </div>
-          <div>
-            <strong>Excluded Patients:</strong>
-            <div
-              style={{
-                color: "#FFFF00",
-                fontWeight: "600",
-                marginTop: "4px",
-                fontSize: "18px",
-              }}
-            >
-              {exclusion_count}
-            </div>
 
-          </div>
-          <div>
-            <strong>Error Patients:</strong>
-            <div
-              style={{
-                color: "#FF0000",
-                fontWeight: "600",
-                marginTop: "4px",
-                fontSize: "18px",
-              }}
-            >
-              {0}
-            </div>
-
-          </div>
+          
         </div>
       </div>
 
@@ -444,20 +418,7 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
 
         })}
 
-    {/* Match Results Summary */}
-      <div
-        style={{
-          padding: "15px",
-          backgroundColor: "#eaea00",
-          color: "#757500",
-          borderRadius: "4px",
-          marginBottom: "20px",
-          textAlign: "center",
-          fontWeight: "500",
-        }}
-      >
-        ⚠️ Displaying top <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} exclusions for trial <strong>{trialId}</strong>
-      </div>
+
             <div>
 
 
