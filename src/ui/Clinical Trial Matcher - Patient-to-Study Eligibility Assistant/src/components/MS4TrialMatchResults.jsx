@@ -286,7 +286,6 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
         }}
       >
         ✅ Displaying the top <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} match for trial <strong>{trialId}</strong>
-        <strong>{trialId}</strong>
       </div>
 
       {/* Patient Results List */}
@@ -375,12 +374,12 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                      >
                           <thead>
                             <tr>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Matches</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Type</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Field</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Patient Value</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Operator</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Requirement</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Matches</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Type</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Field</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Patient Value</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Operator</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Requirement</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -390,11 +389,11 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                                         <td style={{ border: "1px solid black", padding: "4px" }}>
                                           {match ? "✅" : "❌"}
                                         </td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{types[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{fields[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{patient_values[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{operators[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{values[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{types[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{fields[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{patient_values[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{operators[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{values[i]}</td>
                                       </tr>
                                     ) : null
                                   )}
@@ -411,12 +410,12 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                      >
                           <thead>
                             <tr>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Matches</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Type</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Field</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Patient Value</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Operator</th>
-                              <th style={{ border: "1px solid black", padding: "4px" }}>Requirement</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Matches</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Type</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Field</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Patient Value</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Operator</th>
+                              <th style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>Requirement</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -426,11 +425,11 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
                                         <td style={{ border: "1px solid black", padding: "4px" }}>
                                           {match ? "✅" : "❌"}
                                         </td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{types[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{fields[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{patient_values[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{operators[i]}</td>
-                                        <td style={{ border: "1px solid black", padding: "4px" }}>{values[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{types[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{fields[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{patient_values[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{operators[i]}</td>
+                                        <td style={{ border: "1px solid black", padding: "4px" , color: "#333"}}>{values[i]}</td>
                                       </tr>
                                     ) : null
                                   )}
@@ -458,7 +457,6 @@ const MS4TrialMatchResults = ({ trialData, patients = [] }) => {
         }}
       >
         ⚠️ Displaying top <strong>{matchResults.length}</strong> patient{matchResults.length !== 1 ? 's' : ''} exclusions for trial <strong>{trialId}</strong>
-        <strong>{trialId}</strong>
       </div>
             <div>
 
