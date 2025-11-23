@@ -145,8 +145,8 @@ function App() {
       <section className="health-status-section">
         <h2>System Health Status</h2>
         <div className="health-status-grid">
-          <MS2HealthStatus />
-          <MS3HealthStatus />
+            {/* <MS2HealthStatus /> */}
+            {/* <MS3HealthStatus /> */}
         </div>
       </section>
 
