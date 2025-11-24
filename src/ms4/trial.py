@@ -18,6 +18,7 @@ class PatientMatch(BaseModel):
     values: List[str]
     patient_values: List[str]
 
+logger = logging.getLogger(__name__)
 
 class Trial:
     """Represents a clinical trial with eligibility criteria"""
