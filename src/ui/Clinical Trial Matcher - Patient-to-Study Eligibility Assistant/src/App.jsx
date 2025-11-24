@@ -145,8 +145,8 @@ function App() {
       <section className="health-status-section">
         <h2>System Health Status</h2>
         <div className="health-status-grid">
-          <MS2HealthStatus />
-          <MS3HealthStatus />
+            { /* <MS2HealthStatus /> */}
+            { /* <MS3HealthStatus /> */}
         </div>
       </section>
 
@@ -283,7 +283,7 @@ function App() {
                           marginBottom: '8px',
                           lineHeight: '1.6'
                         }}>
-                          {criteria.inclusion_criteria.slice(0, 3).map((item, i) => (
+                          {criteria.inclusion_criteria.map((item, i) => (
                             <li
                               key={i}
                               style={{
@@ -299,11 +299,7 @@ function App() {
                               {item.description || item.raw_text || "N/A"}
                             </li>
                           ))}
-                          {criteria.inclusion_criteria.length > 3 && (
-                            <li style={{ color: '#999', fontSize: '12px' }}>
-                              +{criteria.inclusion_criteria.length - 3} more
-                            </li>
-                          )}
+
                         </ul>
                       </div>
                     )}
@@ -321,7 +317,7 @@ function App() {
                           marginBottom: '0',
                           lineHeight: '1.6'
                         }}>
-                          {criteria.exclusion_criteria.slice(0, 3).map((item, i) => (
+                          {criteria.exclusion_criteria.map((item, i) => (
                             <li
                               key={i}
                               style={{
@@ -337,11 +333,7 @@ function App() {
                               {item.description || item.raw_text || "N/A"}
                             </li>
                           ))}
-                          {criteria.exclusion_criteria.length > 3 && (
-                            <li style={{ color: '#999', fontSize: '12px' }}>
-                              +{criteria.exclusion_criteria.length - 3} more
-                            </li>
-                          )}
+
                         </ul>
                       </div>
                     )}

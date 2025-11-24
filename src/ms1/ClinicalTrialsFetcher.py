@@ -50,7 +50,7 @@ class SearchQuery(BaseModel):
 # ──────────────────────────────
 
 CLINICAL_TRIALS_URL = "https://clinicaltrials.gov/api/v2/studies"
-MAX_TRIALS = 5
+MAX_TRIALS = 100
 
 # Data directory paths - Navigate to repo root
 REPO_ROOT = Path(__file__).parent.parent.parent

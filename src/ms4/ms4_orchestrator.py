@@ -239,7 +239,7 @@ async def check_ms2_health() -> Dict[str, Any]:
 async def check_ms3_health() -> Dict[str, Any]:
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            response = await client.get(f"{MS3_BASE_URL}/live")
+            response = await client.get(f"{MS3_BASE_URL}/health")
             
             if response.status_code == 200:
                 data: Dict[str, Any] = response.json()

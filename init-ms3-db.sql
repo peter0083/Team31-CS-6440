@@ -1,7 +1,5 @@
--- init-ms3-db.sql - Fixed with AGE column
-
 CREATE TABLE IF NOT EXISTS patient (
-    id UUID PRIMARY KEY,
+    id VARCHAR(255) PRIMARY KEY,
     birth_date DATE,
     age INT,
     gender VARCHAR(50),
@@ -14,8 +12,8 @@ CREATE TABLE IF NOT EXISTS patient (
 );
 
 CREATE TABLE IF NOT EXISTS condition (
-    id UUID PRIMARY KEY,
-    subject_id UUID,
+    id VARCHAR(255) PRIMARY KEY,
+    subject_id VARCHAR(255),
     code VARCHAR(50),
     code_system VARCHAR(100),
     description VARCHAR(500),
@@ -25,8 +23,8 @@ CREATE TABLE IF NOT EXISTS condition (
 );
 
 CREATE TABLE IF NOT EXISTS observation (
-    id UUID PRIMARY KEY,
-    subject_id UUID,
+    id VARCHAR(255) PRIMARY KEY,
+    subject_id VARCHAR(255),
     code VARCHAR(50),
     code_system VARCHAR(100),
     display VARCHAR(500),
@@ -39,8 +37,8 @@ CREATE TABLE IF NOT EXISTS observation (
 );
 
 CREATE TABLE IF NOT EXISTS medicationrequest (
-    id UUID PRIMARY KEY,
-    subject_id UUID,
+    id VARCHAR(255) PRIMARY KEY,
+    subject_id VARCHAR(255),
     medication_text VARCHAR(500),
     generic_name VARCHAR(500),
     dose_text VARCHAR(200),

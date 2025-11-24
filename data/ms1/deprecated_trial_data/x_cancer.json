@@ -1,0 +1,1578 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT06819228",
+          "orgStudyIdInfo": {
+            "id": "VICCHNP24602"
+          },
+          "organization": {
+            "fullName": "Vanderbilt-Ingram Cancer Center",
+            "class": "OTHER"
+          },
+          "briefTitle": "Window Trial of Fluorescently Labeled Panitumumab (Panitumumab-IRDye800) in Head and Neck Cancer",
+          "officialTitle": "Window Trial of Fluorescently Labeled Panitumumab (Panitumumab-IRDye800) in Head and Neck Cancer"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2025-09",
+          "overallStatus": "RECRUITING",
+          "startDateStruct": {
+            "date": "2025-04-17",
+            "type": "ACTUAL"
+          },
+          "primaryCompletionDateStruct": {
+            "date": "2028-03",
+            "type": "ESTIMATED"
+          },
+          "completionDateStruct": {
+            "date": "2029-03",
+            "type": "ESTIMATED"
+          },
+          "studyFirstSubmitDate": "2025-01-24",
+          "studyFirstSubmitQcDate": "2025-02-04",
+          "studyFirstPostDateStruct": {
+            "date": "2025-02-11",
+            "type": "ACTUAL"
+          },
+          "lastUpdateSubmitDate": "2025-09-29",
+          "lastUpdatePostDateStruct": {
+            "date": "2025-10-03",
+            "type": "ESTIMATED"
+          }
+        },
+        "sponsorCollaboratorsModule": {
+          "responsibleParty": {
+            "type": "PRINCIPAL_INVESTIGATOR",
+            "investigatorFullName": "Eben Rosenthal",
+            "investigatorTitle": "Barry and Amy Baker Professor and Chair",
+            "investigatorAffiliation": "Vanderbilt-Ingram Cancer Center"
+          },
+          "leadSponsor": {
+            "name": "Vanderbilt-Ingram Cancer Center",
+            "class": "OTHER"
+          }
+        },
+        "oversightModule": {
+          "oversightHasDmc": true,
+          "isFdaRegulatedDrug": true,
+          "isFdaRegulatedDevice": false
+        },
+        "descriptionModule": {
+          "briefSummary": "This study is exploring the use of Panitumumab in Head and Neck Cancer. Panitumumab is an approved drug named Vectibix and is used as an anti-cancer agent in other cancers such as colorectal cancer. It works by attaching to the cancer cell in a unique way that allows the drug to get into the cancer tissue. In addition to the Panitumumab, participants will also receive a Panitumumab-IRDye800 (Pan800) or a fluorescently labeled Panitumumab infusion. IRDye800 is an investigational dye that, when tested in the lab, helps various characteristics of human tissue show up better when using a special camera during surgery. Panitumumab-IRDye800 is a combination of the drug and the dye that attaches to cancer cells and appears to make them visible to the doctor when he or she uses the special camera during surgery.\n\nThe goal of this study is to use a novel and possibly safer approach to identify an optimal dose for panitumumab to treat cancer patients by using a new light-based therapy. In this study, different drug levels will be analyzed using this approach to understand how much drug reaches the tumor at different administered doses, which may help us provide safer and/or more effective therapies in the future.\n\nThe goal is to identify the correct amount or dose of a drug that is needed for effective cancer therapies. Often, clinical studies look at how much of the drug can be tolerated before patients become sick, rather than how much of the drug is required to be effective.\n\nIRDye800 is an investigational dye that, when tested in the lab, helps various characteristics of human tissue show up better when using a special camera during surgery. Panitumumab-IRDye800 is a combination of the drug and the dye that attaches to cancer cells and appears to make them visible to the doctor when he or she uses the special camera during surgery. This will help the surgeon with clinical margins during surgery and will may have a clearer way to differentiate between cancer and healthy tissue.",
+          "detailedDescription": "The primary objective of this study is to understand biologic dosing of panitumumab which would contribute to the field by establishing new methodology for dose selection with the aim of reducing toxicity in cancer patients. For the individual patient in this trial, panitumumab itself is unlikely to demonstrate anti-tumor efficacy. However, previous studies have shown some benefit when using panitumumab-IRDye800 (pan800) as an imaging agent intraoperatively. The investigators hope to improve patient outcomes by gathering clinical data to support pan800 as a tool for reducing positive surgical margins and to identify malignant lymph nodes during surgical resection.\n\nThe drug being used in this study, panitumumab, is approved by the US FDA for treatment of certain types of advanced colorectal cancer at a dosage of 6 mg/kg given every 14 days. Many of the reported adverse events are associated with repeat administration of panitumumab, rather than 1-2 doses being administered in this study. However, the investigators do anticipate some adverse events at therapeutic dosing (anticipated grade 1-2). The most common side effects patients have experienced when receiving panitumumab primarily include skin reactions (including acne like rash, dry or itchy skin, cracking of skin around the participants nail beds, skin infections, and dry eyes), fatigue, nausea, and diarrhea.\n\nCurrently, there is no standardized method to identify the optimal biologic dose (OBD) for oncology therapies. Traditionally, dosing has been based on toxicity levels, specifically the maximally tolerated dose (MTD), rather than actual therapeutic effectiveness. In early-stage oncology trials, MTD often guides dose selection, with plasma drug concentrations serving as a rough measure for dose optimization. However, this plasma provides limited insight into how much of the drug actually reaches the tumor or binds to the intended target.\n\nThis study proposes a novel approach to finding OBD by measuring tumor drug concentration in head and neck cancer patients using an optically labeled antibody therapy. The investigators hypothesize that if a drug reaches a maximum concentration at a lower dose that previously thought, there may be no utility in increasing systemic dosing and risk unnecessary toxicity as well as financial burden.\n\nOur group has previously published data using a fluorescent labeled therapeutic antibody (panitumumab-IRDye800) to show heterogenous distribution of antibody within a patient tumor in head and neck cancer. These studies used a single standard dose of panitumumab-IRDye800 which was shown to localize to malignant tumor tissue with minimal adverse events. In this proposed clinical trial, investigators will leverage this previously used fluorescent drug to investigate tumor concentration at multiple dose points up to and including the current FDA approved therapeutic dose to investigate our primary objective. Investigators will similarly use intraoperative fluorescence to assess the ability of the labeled antibody to distinguish malignant vs benign tissue at a range of doses. This intraoperative use has the potential to help optimize surgical margins and identification of malignant lymph nodes in addition to our primary objective of dose selection.\n\nThe main aim of this study is to investigate tumor concentration of fluorescently-labeled panitumumab at multiple doses up to the current FDA-approved therapeutic dose of panitumumab. This will allow us to identify if tumor saturation with this agent occurs below the currently approved dose. For other molecularly-targeted agents, there is evidence that lower doses can provide similar therapeutic benefit to approved doses. For panitumumab, over 30% of patients receiving this agent receive dose reductions due to adverse effects, resulting in a significant proportion of patients receiving a dose that is below the approved level. However, it is unclear if patients receiving this reduced dose achieve tumor saturation and similar therapeutic benefit. In this study, researchers will investigate if tumor saturation plateaus at a lower dose - an objective in line with dose optimization guidelines from the FDA. Our group has previously published data using fluorescently-labeled panitumumab to show heterogenous distribution of antibody within a patient tumor in head and neck cancer. Data from our previous and current work have allowed us to elucidate the relationship between fluorescence and intratumoral antibody concentration. An additional aim of this study is to provide further data on the efficacy of fluorescently-labelled panitumumab in identifying cancer relative to surrounding normal tissue. Improved tumor localization of the fluorescent agent could facilitate improved margin resections in the operating room."
+        },
+        "conditionsModule": {
+          "conditions": [
+            "HNSCC",
+            "HNSCC,Larynx, Pharynx and Oral Cavity",
+            "SCC - Squamous Cell Carcinoma"
+          ],
+          "keywords": [
+            "Pan800",
+            "Panitumumab",
+            "Fluorescent guided surgery",
+            "oral cancer",
+            "mouth cancer",
+            "tongue cancer",
+            "gum cancer",
+            "SCC",
+            "head and neck cancer",
+            "pharynx",
+            "HNSCC",
+            "larynx"
+          ]
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["EARLY_PHASE1"],
+          "designInfo": {
+            "allocation": "NON_RANDOMIZED",
+            "interventionModel": "SEQUENTIAL",
+            "primaryPurpose": "SUPPORTIVE_CARE",
+            "maskingInfo": {
+              "masking": "NONE"
+            }
+          },
+          "enrollmentInfo": {
+            "count": 18,
+            "type": "ESTIMATED"
+          }
+        },
+        "armsInterventionsModule": {
+          "armGroups": [
+            {
+              "label": "Cohort 1a - Cohort 1c",
+              "type": "EXPERIMENTAL",
+              "description": "These cohorts will receive one dose each of Pan800 (50 mg) and Panitumumab at a range of doses (varying of specific cohort).",
+              "interventionNames": ["Drug: Panitumumab IRDye 800"]
+            },
+            {
+              "label": "Cohort 2a - Cohort 2c",
+              "type": "EXPERIMENTAL",
+              "description": "These cohorts will receive one dose of Pan800 and and two doses of Panitumumab at a range of doses (varying of specific cohort).",
+              "interventionNames": ["Drug: Panitumumab IRDye 800"]
+            }
+          ],
+          "interventions": [
+            {
+              "type": "DRUG",
+              "name": "Panitumumab IRDye 800",
+              "description": "Study participation would last approximately 60 days from screening to follow-up visits. Participants dose of Panitumumab would be based on weight and Panitumumab IRDye800 is dosed the same for all participants.",
+              "armGroupLabels": ["Cohort 1a - Cohort 1c", "Cohort 2a - Cohort 2c"]
+            }
+          ]
+        },
+        "outcomesModule": {
+          "primaryOutcomes": [
+            {
+              "measure": "Determine maximum tumor concentrating dose (MTC) of panitumumab in HNSCC.",
+              "description": "Drug concentration in the tumor will be measured (drug ng/tissue mg) utilizing special imaging devices (such as the Tecan Spark, LI-COR Pearl Trilogy, LI-COR Elvis, and LI-COR Odyssey). These devices will only be used once the tissue is removed per Standard of Care during surgery and then comparing cancerous tissue to healthy tissue.\n\nThe maximum tumor concentrating dose will be defined as the lower dose of drug after two consecutive doses demonstrate the same maximum concentration of intra-tumoral drug. The investigators will further evaluate if multiple doses are required to fully concentrate HNSCC in Cohort 2. The MTC dose with 1 vs 2 infusions preoperatively will be compared.",
+              "timeFrame": "Up to 21 days per patient"
+            }
+          ],
+          "secondaryOutcomes": [
+            {
+              "measure": "Determine the efficacy of panitumumabIRDye800 to identify cancer compared to surrounding normal tissue",
+              "description": "Tumor to background ratio (TBR) at various doses intraoperatively and on pathology. Pan800 fluorescence will be used to investigate image guided surgery with intraoperative imaging to optimize surgical resection. During the surgery, researchers and investigators will be able to utilize the PDE NIR Camera to visualize the Panitumumab IRDye800 during surgery. Investigators have used this for other studies with Panitumumab IRDye800, we do not anticipate this adding any additional risks to the patient. This will be utilized intraoperatively to evaluate correlation of fluorescence with clinical margins and postoperatively to correlate with tumor pathology in primary tumor specimens and metastasis.",
+              "timeFrame": "Up to 30 days per patient"
+            }
+          ]
+        },
+        "eligibilityModule": {
+          "eligibilityCriteria": "Inclusion Criteria:\n\n* Willing to review and sign written informed consent.\n* Male or female patients age \\> 18 years.\n* Tissue confirmation of head and neck squamous cell carcinoma.\n* Patients for whom a potentially curative resection is planned as standard of care.\n* ECOG performance status of 0 or 1\n* Adequate hematologic and end-organ function appropriate for surgery as determined by routine preoperative evaluation. If liver function, renal function and hematologic laboratory test results are acceptable for elective surgery, the patient is considered eligible for the study. Laboratory results that will need to be obtained within 30 days prior to initiation of study treatment: Magnesium, Phosphorus, serum pregnancy test (for females of childbearing age).\n* For women of childbearing potential: Agreement to remain abstinent (refrain from heterosexual intercourse) or use contraceptive methods as defined below:\n\n  • A woman is considered to be of childbearing potential if she is post-menarchal, has not reached a postmenopausal state (12 continuous months of amenorrhea with no identified cause other than menopause), and has not undergone surgical sterilization (removal of the uterus and/or both ovaries and/or both fallopian tubes). Post-menarchal is defined as either:\n  * age \\>55 years old\n  * age \\<55 years or less and\n* at least 12 months since last menstrual period,\n* at least 6 months since last menstrual period and FSH \\> 40 IU\n\n  * Women of childbearing potential must have a negative pregnancy test result within 14 days prior to initiation of study treatment.\n  * Women must remain abstinent or use effective contraceptive methods during the treatment period and for 5 months after the final dose of panitumumab.\n  * Men must agree to remain abstinent or use a condom during the treatment period and for 5 months after the final dose of panitumumab/pan800 to avoid exposing the embryo. Men must agree to refrain from donating sperm during this same period.\n\nExclusion Criteria:\n\n* Patients not eligible for standard of care surgical resection\n* Patients with a history of infusion reactions or allergic reactions to panitumumab.\n* History of idiopathic pulmonary fibrosis, organizing pneumonia (e.g., bronchiolitis obliterans), drug-induced pneumonitis, or idiopathic pneumonitis, or evidence of active pneumonitis on screening chest computed tomography (CT) scan.\n\n  • History of radiation pneumonitis in the radiation field (fibrosis) is permitted.\n* Active tuberculosis. Patients do NOT have to be screened for tuberculosis for this trial.\n* Significant cardiovascular disease (such as New York Heart Association Class II or greater cardiac disease, myocardial infarction, or cerebrovascular accident) within 3 months prior to initiation of study treatment, unstable arrhythmia, or unstable angina.\n* History of severe allergic anaphylactic reactions to chimeric or humanized antibodies or fusion proteins.\n* Patients receiving Class IA (quinidine, procainamide) or Class III (dofetilide, amiodarone, sotalol) antiarrhythmic agents. The following drugs are known to interact with panitumumab and therefore any patients taking these medications within 30 days will be ineligible for the trial.\n* Pregnancy or breastfeeding, or intention of becoming pregnant during study treatment or within 5 months after the final dose of study treatment.\n* Magnesium or phosphorus lower than normal institutional values, patient is symptomatic, and the values are unable to be corrected through standard repletion strategies.\n* Evidence of QT prolongation on pretreatment ECG.",
+          "healthyVolunteers": false,
+          "sex": "ALL",
+          "minimumAge": "18 Years",
+          "stdAges": ["ADULT", "OLDER_ADULT"]
+        },
+        "contactsLocationsModule": {
+          "centralContacts": [
+            {
+              "name": "Nicole Jones, Clinical Research Coordinator",
+              "role": "CONTACT",
+              "phone": "615-936-2807",
+              "email": "nicole.l.jones@vumc.org"
+            },
+            {
+              "name": "Carleigh Burns",
+              "role": "CONTACT",
+              "phone": "615-669-7207",
+              "email": "carleigh.burns@vumc.org"
+            }
+          ],
+          "overallOfficials": [
+            {
+              "name": "Eben L Rosenthal, MD",
+              "affiliation": "Vanderbilt University/Ingram Cancer Center",
+              "role": "PRINCIPAL_INVESTIGATOR"
+            }
+          ],
+          "locations": [
+            {
+              "facility": "Vanderbilt University Medical Center",
+              "status": "RECRUITING",
+              "city": "Nashville",
+              "state": "Tennessee",
+              "zip": "37232",
+              "country": "United States",
+              "contacts": [
+                {
+                  "name": "Nicole Jones",
+                  "role": "CONTACT",
+                  "phone": "615-936-2807",
+                  "email": "nicole.l.jones@vumc.org"
+                },
+                {
+                  "name": "Carleigh Burns",
+                  "role": "CONTACT",
+                  "phone": "615-669-7207",
+                  "email": "carleigh.burns@vumc.org"
+                },
+                {
+                  "name": "Eben L Rosenthal, MD, MD",
+                  "role": "PRINCIPAL_INVESTIGATOR"
+                }
+              ],
+              "geoPoint": {
+                "lat": 36.16589,
+                "lon": -86.78444
+              }
+            }
+          ]
+        },
+        "ipdSharingStatementModule": {
+          "ipdSharing": "NO",
+          "description": "This is a Pilot study at a single site in the U.S. The investigators do not plan to share IPD with other researchers at this time."
+        }
+      },
+      "documentSection": {
+        "largeDocumentModule": {
+          "largeDocs": [
+            {
+              "typeAbbrev": "ICF",
+              "hasProtocol": false,
+              "hasSap": false,
+              "hasIcf": true,
+              "label": "Informed Consent Form",
+              "date": "2025-08-05",
+              "uploadDate": "2025-09-29T10:38",
+              "filename": "ICF_000.pdf",
+              "size": 1239911
+            }
+          ]
+        }
+      },
+      "derivedSection": {
+        "miscInfoModule": {
+          "versionHolder": "2025-11-21"
+        },
+        "conditionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D000077195",
+              "term": "Squamous Cell Carcinoma of Head and Neck"
+            },
+            {
+              "id": "D007818",
+              "term": "Laryngeal Diseases"
+            },
+            {
+              "id": "D002294",
+              "term": "Carcinoma, Squamous Cell"
+            },
+            {
+              "id": "D009062",
+              "term": "Mouth Neoplasms"
+            },
+            {
+              "id": "D014062",
+              "term": "Tongue Neoplasms"
+            },
+            {
+              "id": "D006258",
+              "term": "Head and Neck Neoplasms"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D002277",
+              "term": "Carcinoma"
+            },
+            {
+              "id": "D009375",
+              "term": "Neoplasms, Glandular and Epithelial"
+            },
+            {
+              "id": "D009370",
+              "term": "Neoplasms by Histologic Type"
+            },
+            {
+              "id": "D009369",
+              "term": "Neoplasms"
+            },
+            {
+              "id": "D009371",
+              "term": "Neoplasms by Site"
+            },
+            {
+              "id": "D012140",
+              "term": "Respiratory Tract Diseases"
+            },
+            {
+              "id": "D010038",
+              "term": "Otorhinolaryngologic Diseases"
+            },
+            {
+              "id": "D018307",
+              "term": "Neoplasms, Squamous Cell"
+            },
+            {
+              "id": "D009059",
+              "term": "Mouth Diseases"
+            },
+            {
+              "id": "D009057",
+              "term": "Stomatognathic Diseases"
+            },
+            {
+              "id": "D014060",
+              "term": "Tongue Diseases"
+            }
+          ]
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT06450353",
+          "orgStudyIdInfo": {
+            "id": "2024-0253"
+          },
+          "secondaryIdInfos": [
+            {
+              "id": "NCI-2024-04790",
+              "type": "OTHER",
+              "domain": "NCI-CTRP Clinical Registry"
+            }
+          ],
+          "organization": {
+            "fullName": "M.D. Anderson Cancer Center",
+            "class": "OTHER"
+          },
+          "briefTitle": "Prospective Evaluation of Disparities in Provision of Allogeneic Transplantation",
+          "officialTitle": "Prospective Evaluation of Disparities in Provision of Allogeneic Transplantation"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2025-07",
+          "overallStatus": "RECRUITING",
+          "expandedAccessInfo": {
+            "hasExpandedAccess": false
+          },
+          "startDateStruct": {
+            "date": "2024-05-31",
+            "type": "ACTUAL"
+          },
+          "primaryCompletionDateStruct": {
+            "date": "2027-06-01",
+            "type": "ESTIMATED"
+          },
+          "completionDateStruct": {
+            "date": "2029-06-01",
+            "type": "ESTIMATED"
+          },
+          "studyFirstSubmitDate": "2024-05-31",
+          "studyFirstSubmitQcDate": "2024-06-04",
+          "studyFirstPostDateStruct": {
+            "date": "2024-06-10",
+            "type": "ACTUAL"
+          },
+          "lastUpdateSubmitDate": "2025-07-25",
+          "lastUpdatePostDateStruct": {
+            "date": "2025-07-29",
+            "type": "ACTUAL"
+          }
+        },
+        "sponsorCollaboratorsModule": {
+          "responsibleParty": {
+            "type": "SPONSOR"
+          },
+          "leadSponsor": {
+            "name": "M.D. Anderson Cancer Center",
+            "class": "OTHER"
+          }
+        },
+        "oversightModule": {
+          "oversightHasDmc": false,
+          "isFdaRegulatedDrug": false,
+          "isFdaRegulatedDevice": false
+        },
+        "descriptionModule": {
+          "briefSummary": "To look at the effect of a recipient's ancestry and socio-economic status on their choice of bone marrow transplantation donor cells and their chance of receiving genetically similar (allogeneic) bone marrow cells versus cells that are not genetically similar (allograft).",
+          "detailedDescription": "Primary Objectives To prospectively evaluate graft options and choice of donor by patient ancestry and SES for allograft candidates at MDACC.\n\nSecondary Objectives\n\n* To prospectively evaluate time to transplant for allograft candidates at MDACC.\n* To evaluate treatment-related mortality for allograft candidates at MDACC.\n* To assess overall survival for allograft candidates at MDACC.\n* To prospectively evaluate receipt of preferred unrelated donor for allograft recipients at MDACC.\n* To evaluate receipt of an optimal graft for allograft recipients at MDACC."
+        },
+        "conditionsModule": {
+          "conditions": ["Allogeneic Transplantation"]
+        },
+        "designModule": {
+          "studyType": "OBSERVATIONAL",
+          "patientRegistry": false,
+          "designInfo": {
+            "observationalModel": "COHORT",
+            "timePerspective": "PROSPECTIVE"
+          },
+          "enrollmentInfo": {
+            "count": 1200,
+            "type": "ESTIMATED"
+          }
+        },
+        "armsInterventionsModule": {
+          "armGroups": [
+            {
+              "label": "Prospective evaluation",
+              "description": "Participants are expected to be in this research study for up to 2 years after the participants bone marrow transplantation. However, your active participation will only last 1 day, when you sign the consent form and complete a questionnaire about your demographic information and ancestry (family ethnicity). For the rest of the study, information about the participants medical history, choice of bone marrow donor, and health outcomes will be collected from your medical record.",
+              "interventionNames": ["Behavioral: Patient Ancestry Questionnaires"]
+            }
+          ],
+          "interventions": [
+            {
+              "type": "BEHAVIORAL",
+              "name": "Patient Ancestry Questionnaires",
+              "description": "Participants will be asked to complete a demographics and ancestry questionnaire at the baseline visit before you and your doctor select bone marrow donation candidates.",
+              "armGroupLabels": ["Prospective evaluation"]
+            }
+          ]
+        },
+        "outcomesModule": {
+          "primaryOutcomes": [
+            {
+              "measure": "Patient Ancestry Questionnaire",
+              "timeFrame": "Through study completion; an average of 1 year."
+            }
+          ]
+        },
+        "eligibilityModule": {
+          "eligibilityCriteria": "Inclusion Criteria:\n\n1. ≥ 18 years of age.\n2. Candidate for allogeneic transplantation\n\nExclusion Criteria:\n\n1\\) Allogeneic stem cell transplantation not medically indicated.",
+          "healthyVolunteers": false,
+          "sex": "ALL",
+          "minimumAge": "18 Years",
+          "stdAges": ["ADULT", "OLDER_ADULT"],
+          "studyPopulation": "MD Anderson Cancer Center",
+          "samplingMethod": "NON_PROBABILITY_SAMPLE"
+        },
+        "contactsLocationsModule": {
+          "centralContacts": [
+            {
+              "name": "Warren Fingrut, MD",
+              "role": "CONTACT",
+              "phone": "(832) 387-8363",
+              "email": "wbfingrut@mdanderson.org"
+            }
+          ],
+          "overallOfficials": [
+            {
+              "name": "Warren Fingrut, MD",
+              "affiliation": "M.D. Anderson Cancer Center",
+              "role": "PRINCIPAL_INVESTIGATOR"
+            }
+          ],
+          "locations": [
+            {
+              "facility": "MD Anderson Cancer Center",
+              "status": "RECRUITING",
+              "city": "Houston",
+              "state": "Texas",
+              "zip": "77030",
+              "country": "United States",
+              "contacts": [
+                {
+                  "name": "Warren Fingrut, MD",
+                  "role": "CONTACT",
+                  "phone": "832-387-8363",
+                  "email": "wbfingrut@mdanderson.org"
+                },
+                {
+                  "name": "Warren Fingrut, MD",
+                  "role": "PRINCIPAL_INVESTIGATOR"
+                }
+              ],
+              "geoPoint": {
+                "lat": 29.76328,
+                "lon": -95.36327
+              }
+            }
+          ]
+        },
+        "referencesModule": {
+          "seeAlsoLinks": [
+            {
+              "label": "MD Anderson Cancer Center",
+              "url": "http://www.mdanderson.org"
+            }
+          ]
+        }
+      },
+      "derivedSection": {
+        "miscInfoModule": {
+          "versionHolder": "2025-11-21"
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT05775939",
+          "orgStudyIdInfo": {
+            "id": "22D.705"
+          },
+          "secondaryIdInfos": [
+            {
+              "id": "JT 20888",
+              "type": "OTHER",
+              "domain": "JeffTrial Number"
+            }
+          ],
+          "organization": {
+            "fullName": "Thomas Jefferson University",
+            "class": "OTHER"
+          },
+          "briefTitle": "PET/CT Imaging to Evaluate Cardiac Radiation Damage in Patients With Lung or Esophageal Cancer, EUCLID Trial",
+          "officialTitle": "PET Functional Imaging to Evaluate Cardiac Radiation Damage (EUCLID)"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2025-06",
+          "overallStatus": "RECRUITING",
+          "expandedAccessInfo": {
+            "hasExpandedAccess": false
+          },
+          "startDateStruct": {
+            "date": "2023-01-20",
+            "type": "ACTUAL"
+          },
+          "primaryCompletionDateStruct": {
+            "date": "2026-01-01",
+            "type": "ESTIMATED"
+          },
+          "completionDateStruct": {
+            "date": "2026-01-01",
+            "type": "ESTIMATED"
+          },
+          "studyFirstSubmitDate": "2023-02-07",
+          "studyFirstSubmitQcDate": "2023-03-07",
+          "studyFirstPostDateStruct": {
+            "date": "2023-03-20",
+            "type": "ACTUAL"
+          },
+          "lastUpdateSubmitDate": "2025-06-04",
+          "lastUpdatePostDateStruct": {
+            "date": "2025-06-08",
+            "type": "ACTUAL"
+          }
+        },
+        "sponsorCollaboratorsModule": {
+          "responsibleParty": {
+            "type": "SPONSOR"
+          },
+          "leadSponsor": {
+            "name": "Thomas Jefferson University",
+            "class": "OTHER"
+          }
+        },
+        "oversightModule": {
+          "oversightHasDmc": true,
+          "isFdaRegulatedDrug": false,
+          "isFdaRegulatedDevice": false
+        },
+        "descriptionModule": {
+          "briefSummary": "This clinical trial examines positron emission tomography (PET)/computed tomography (CT) in evaluating cardiac radiation damage in patients with lung or esophageal cancer. As part of the treatment for lung or esophageal cancer, patients will undergo radiation therapy. Sometimes, during this treatment, the heart is also subjected to some radiation which could affect its function, either increasing or decreasing the function. It is not known the consequences of this change nor is it known if doctors can detect the changes associated with the radiation. Sarcoidosis FDG positron emission tomography (PET)-computed tomography (CT) scans are a common way to image cardiac inflammation and myocardial viability. This study may help doctors image the heart before, during and after radiotherapy to monitor any changes.",
+          "detailedDescription": "PRIMARY OBJECTIVE:\n\nI. To characterize radiation-related functional imaging changes in the heart using sarcoidosis fludeoxyglucose F-18 (FDG) PET-CT imaging.\n\nSECONDARY OBJECTIVES:\n\nI. 1. To evaluate the ability of imaging changes in the heart to predict for overall survival (OS).\n\nII. To evaluate the ability of imaging changes in the heart to predict for cardiac toxicity.\n\nIII. To evaluate the ability of imaging changes in the heart to predict for cardiac related death.\n\nEXPLORATORY OBJECTIVES:\n\nI. To evaluate radiation treatment planning strategies to reduce risk of cardiotoxicity.\n\nII. To determine the correlation between sarcoidosis FDG PET-CT scans and oncologic FDG PET-CT scans.\n\nOUTLINE:\n\nPatients undergo sarcoidosis FDG PET-CT of the heart before, during and, after radiotherapy.\n\nAfter completion of study treatment, patients are followed up at 12 and 24 months."
+        },
+        "conditionsModule": {
+          "conditions": ["Lung Carcinoma", "Esophageal Carcinoma"]
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["NA"],
+          "designInfo": {
+            "allocation": "NA",
+            "interventionModel": "SINGLE_GROUP",
+            "primaryPurpose": "DIAGNOSTIC",
+            "maskingInfo": {
+              "masking": "NONE"
+            }
+          },
+          "enrollmentInfo": {
+            "count": 20,
+            "type": "ESTIMATED"
+          }
+        },
+        "armsInterventionsModule": {
+          "armGroups": [
+            {
+              "label": "Diagnostic (sarcoidosis FDG PET-CT)",
+              "type": "EXPERIMENTAL",
+              "description": "Patients undergo sarcoidosis FDG PET-CT of the heart before, during and, after radiotherapy.",
+              "interventionNames": [
+                "Other: Fludeoxyglucose F-18",
+                "Procedure: Positron Emission Tomography",
+                "Procedure: Computed Tomography",
+                "Other: Questionnaire Administration"
+              ]
+            }
+          ],
+          "interventions": [
+            {
+              "type": "OTHER",
+              "name": "Fludeoxyglucose F-18",
+              "description": "Given FDG",
+              "armGroupLabels": ["Diagnostic (sarcoidosis FDG PET-CT)"],
+              "otherNames": [
+                "105851-17-0",
+                "18FDG",
+                "2-Deoxy-2-(18F)Fluoro-D-Glucose",
+                "2-F18-Fluoro-2-deoxy-D-glucose",
+                "FDG",
+                "Fludeoxyglucose (18F)",
+                "fludeoxyglucose F 18",
+                "Fludeoxyglucose F18",
+                "Fluorine-18 2-Fluoro-2-deoxy-D-Glucose",
+                "Fluorodeoxyglucose F18"
+              ]
+            },
+            {
+              "type": "PROCEDURE",
+              "name": "Positron Emission Tomography",
+              "description": "Undergo PET-CT",
+              "armGroupLabels": ["Diagnostic (sarcoidosis FDG PET-CT)"],
+              "otherNames": [
+                "Medical Imaging",
+                "PET",
+                "PET SCAN",
+                "Positron Emission Tomography Scan",
+                "proton magnetic resonance spectroscopic imaging",
+                "Positron-Emission Tomography",
+                "PT"
+              ]
+            },
+            {
+              "type": "PROCEDURE",
+              "name": "Computed Tomography",
+              "description": "Undergo PET-CT",
+              "armGroupLabels": ["Diagnostic (sarcoidosis FDG PET-CT)"],
+              "otherNames": [
+                "CAT",
+                "CAT Scan",
+                "Computed Axial Tomography",
+                "computerized axial tomography",
+                "Computerized Tomography",
+                "CT",
+                "CT SCAN",
+                "tomography"
+              ]
+            },
+            {
+              "type": "OTHER",
+              "name": "Questionnaire Administration",
+              "description": "Ancillary studies",
+              "armGroupLabels": ["Diagnostic (sarcoidosis FDG PET-CT)"]
+            }
+          ]
+        },
+        "outcomesModule": {
+          "primaryOutcomes": [
+            {
+              "measure": "Change in mean standardized uptake value (SUV) changes in the heart",
+              "description": "Measured by sarcoidosis fludeoxyglucose F-18 (FDG) positron emission tomography (PET)-computed tomography (CT) scans.",
+              "timeFrame": "Up to 30 months after radiotherapy"
+            }
+          ],
+          "secondaryOutcomes": [
+            {
+              "measure": "Ability of pre- to post-radiotherapy SUV changes in the heart",
+              "description": "Measured by sarcoidosis FDG PET-CT scans.",
+              "timeFrame": "Up to 30 months after radiotherapy"
+            },
+            {
+              "measure": "Overall survival",
+              "description": "Survival",
+              "timeFrame": "Up to 30 months after radiotherapy"
+            },
+            {
+              "measure": "Cardiac toxicity",
+              "description": "Assessed using \\>= grade 2 and \\>= grade cardiac events using Common Terminology Criteria for Adverse Events (CTCAE) version 5.0.",
+              "timeFrame": "Up to 30 months after radiotherapy"
+            },
+            {
+              "measure": "Cardiac toxicity judged to be secondary to radiotherapy by cardiologist and radiation oncologist",
+              "description": "Judged to be secondary to radiotherapy by cardiologist and radiation oncologist",
+              "timeFrame": "Up to 30 months after radiotherapy"
+            },
+            {
+              "measure": "Cardiac related death",
+              "description": "Death",
+              "timeFrame": "Up to 30 months after radiotherapy"
+            }
+          ]
+        },
+        "eligibilityModule": {
+          "eligibilityCriteria": "Inclusion Criteria:\n\n* Provide signed and dated informed consent form\n* Willing to comply with all study procedures and be available for the duration of the study\n* Male or female, aged \\>= 18\n* Life expectancy \\>= 3 months as assessed by Radiation Oncologist\n* Mean heart dose estimated by Radiation Oncologist to be \\>= 5 Gy (physics dose or biologically equivalent dose)\n* Pathologically proven (either histologic or cytologic) proven lung cancer or esophageal cancer\n* Planned radiation treatment course for management of lung or esophageal cancer \\* Both standard and hypofractionation schedules are permitted\n\nExclusion Criteria:\n\n* Contraindication for FDG PET-CT scans as assessed by the radiation oncologist or nuclear medicine radiologist\n* Palliative radiation doses defined as 20 Gy in 5 fractions",
+          "healthyVolunteers": false,
+          "sex": "ALL",
+          "minimumAge": "18 Years",
+          "stdAges": ["ADULT", "OLDER_ADULT"]
+        },
+        "contactsLocationsModule": {
+          "centralContacts": [
+            {
+              "name": "Yevgeniy Vinogradskiy, MD",
+              "role": "CONTACT",
+              "phone": "215-955-3605",
+              "email": "yevgeniy.vinogradskiy@jefferson.edu"
+            }
+          ],
+          "overallOfficials": [
+            {
+              "name": "Yevgeniy Vinogradskiy",
+              "affiliation": "Thomas Jefferson University",
+              "role": "PRINCIPAL_INVESTIGATOR"
+            }
+          ],
+          "locations": [
+            {
+              "facility": "Thomas Jefferson University Hospital",
+              "status": "RECRUITING",
+              "city": "Philadelphia",
+              "state": "Pennsylvania",
+              "zip": "19107",
+              "country": "United States",
+              "contacts": [
+                {
+                  "name": "Yevgeniy Vinogradskiy, MD",
+                  "role": "CONTACT",
+                  "phone": "215-955-3605",
+                  "email": "yevgeniy.vinogradskiy@jefferson.edu"
+                }
+              ],
+              "geoPoint": {
+                "lat": 39.95238,
+                "lon": -75.16362
+              }
+            }
+          ]
+        }
+      },
+      "derivedSection": {
+        "miscInfoModule": {
+          "versionHolder": "2025-11-21"
+        },
+        "conditionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D008175",
+              "term": "Lung Neoplasms"
+            },
+            {
+              "id": "D004938",
+              "term": "Esophageal Neoplasms"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D012142",
+              "term": "Respiratory Tract Neoplasms"
+            },
+            {
+              "id": "D013899",
+              "term": "Thoracic Neoplasms"
+            },
+            {
+              "id": "D009371",
+              "term": "Neoplasms by Site"
+            },
+            {
+              "id": "D009369",
+              "term": "Neoplasms"
+            },
+            {
+              "id": "D008171",
+              "term": "Lung Diseases"
+            },
+            {
+              "id": "D012140",
+              "term": "Respiratory Tract Diseases"
+            },
+            {
+              "id": "D005770",
+              "term": "Gastrointestinal Neoplasms"
+            },
+            {
+              "id": "D004067",
+              "term": "Digestive System Neoplasms"
+            },
+            {
+              "id": "D006258",
+              "term": "Head and Neck Neoplasms"
+            },
+            {
+              "id": "D004066",
+              "term": "Digestive System Diseases"
+            },
+            {
+              "id": "D004935",
+              "term": "Esophageal Diseases"
+            },
+            {
+              "id": "D005767",
+              "term": "Gastrointestinal Diseases"
+            }
+          ]
+        },
+        "interventionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D019788",
+              "term": "Fluorodeoxyglucose F18"
+            },
+            {
+              "id": "D009682",
+              "term": "Magnetic Resonance Spectroscopy"
+            },
+            {
+              "id": "D014965",
+              "term": "X-Rays"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D003847",
+              "term": "Deoxyglucose"
+            },
+            {
+              "id": "D003837",
+              "term": "Deoxy Sugars"
+            },
+            {
+              "id": "D002241",
+              "term": "Carbohydrates"
+            },
+            {
+              "id": "D013057",
+              "term": "Spectrum Analysis"
+            },
+            {
+              "id": "D002623",
+              "term": "Chemistry Techniques, Analytical"
+            },
+            {
+              "id": "D008919",
+              "term": "Investigative Techniques"
+            },
+            {
+              "id": "D060733",
+              "term": "Electromagnetic Radiation"
+            },
+            {
+              "id": "D055590",
+              "term": "Electromagnetic Phenomena"
+            },
+            {
+              "id": "D060328",
+              "term": "Magnetic Phenomena"
+            },
+            {
+              "id": "D055585",
+              "term": "Physical Phenomena"
+            },
+            {
+              "id": "D011827",
+              "term": "Radiation"
+            },
+            {
+              "id": "D011839",
+              "term": "Radiation, Ionizing"
+            }
+          ]
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT04380831",
+          "orgStudyIdInfo": {
+            "id": "20006"
+          },
+          "secondaryIdInfos": [
+            {
+              "id": "NCI-2020-02744",
+              "type": "REGISTRY",
+              "domain": "CTRP (Clinical Trial Reporting Program)"
+            },
+            {
+              "id": "20006",
+              "type": "OTHER",
+              "domain": "City of Hope Medical Center"
+            }
+          ],
+          "organization": {
+            "fullName": "City of Hope Medical Center",
+            "class": "OTHER"
+          },
+          "briefTitle": "TBI Using IMRT and Cyclophosphamide Prior to Stem Cell Transplant for the Treatment of Severe Systemic Sclerosis",
+          "officialTitle": "Pilot Study of Total Body Irradiation Using Intensity Modulated Radiation Therapy (IMRT) and Cyclophosphamide Conditioning Regimen Prior to Autologous Hematopoietic Cell Transplantation in Patients With Severe Systemic Sclerosis"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2025-03",
+          "overallStatus": "RECRUITING",
+          "expandedAccessInfo": {
+            "hasExpandedAccess": false
+          },
+          "startDateStruct": {
+            "date": "2022-02-24",
+            "type": "ACTUAL"
+          },
+          "primaryCompletionDateStruct": {
+            "date": "2026-12-22",
+            "type": "ESTIMATED"
+          },
+          "completionDateStruct": {
+            "date": "2026-12-22",
+            "type": "ESTIMATED"
+          },
+          "studyFirstSubmitDate": "2020-04-30",
+          "studyFirstSubmitQcDate": "2020-05-07",
+          "studyFirstPostDateStruct": {
+            "date": "2020-05-08",
+            "type": "ACTUAL"
+          },
+          "lastUpdateSubmitDate": "2025-03-18",
+          "lastUpdatePostDateStruct": {
+            "date": "2025-03-20",
+            "type": "ACTUAL"
+          }
+        },
+        "sponsorCollaboratorsModule": {
+          "responsibleParty": {
+            "type": "SPONSOR"
+          },
+          "leadSponsor": {
+            "name": "City of Hope Medical Center",
+            "class": "OTHER"
+          },
+          "collaborators": [
+            {
+              "name": "National Cancer Institute (NCI)",
+              "class": "NIH"
+            }
+          ]
+        },
+        "oversightModule": {
+          "oversightHasDmc": true,
+          "isFdaRegulatedDrug": true,
+          "isFdaRegulatedDevice": false,
+          "isUsExport": false
+        },
+        "descriptionModule": {
+          "briefSummary": "This early phase I trial studies the side effects and feasibility of total body irradiation using intensity modulation radiation therapy (IMRT) when given in combination with cyclophosphamide prior to stem cell transplant to treat severe systemic sclerosis. IMRT delivers total body radiation therapy more precisely and may reduce radiation exposure to sensitive normal organs. Giving chemotherapy, such as cyclophosphamide, and total body irradiation before a donor stem cell transplant helps kill cancer cells in the body and helps make room in the bone marrow for new blood-forming cells (stem cells) to grow. Giving IMRT and cyclophosphamide prior to stem cell transplant may work better in treating severe systemic sclerosis and reduce radiation doses to lung and kidneys compared to cyclophosphamide alone.",
+          "detailedDescription": "PRIMARY OBJECTIVES:\n\nI. To assess the feasibility of using IMRT to deliver total body irradiation (TBI) to 800 cGy while keeping mean lung and kidney doses to 200 cGy.\n\nII. To assess the safety/feasibility of total body irradiation using IMRT (IMRT TBI) in systemic sclerosis patients undergoing autologous hematopoietic stem cell transplantation.\n\nSECONDARY OBJECTIVES:\n\nI. To evaluate dose homogeneity and dose sparing to lung and kidneys. II. To evaluate transplant-related mortality at 30 days and 100 days post IMRT TBI.\n\nOUTLINE:\n\nPatients undergo TBI using IMRT twice daily (BID) on days -5 and -4 in the absence of disease progression or disease progression. Patients then receive cyclophosphamide on days -3 and -2 and undergo HSCT on day 0 in the absence of disease progression or unacceptable toxicity.\n\nAfter completion of study treatment, patients are followed up on days 30 and 100."
+        },
+        "conditionsModule": {
+          "conditions": ["Systemic Scleroderma"]
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["EARLY_PHASE1"],
+          "designInfo": {
+            "allocation": "NA",
+            "interventionModel": "SINGLE_GROUP",
+            "primaryPurpose": "TREATMENT",
+            "maskingInfo": {
+              "masking": "NONE"
+            }
+          },
+          "enrollmentInfo": {
+            "count": 15,
+            "type": "ESTIMATED"
+          }
+        },
+        "armsInterventionsModule": {
+          "armGroups": [
+            {
+              "label": "Treatment (TBI using IMRT, cyclophosphamide, HSCT)",
+              "type": "EXPERIMENTAL",
+              "description": "Patients undergo TBI using IMRT BID on days -5 and -4 in the absence of disease progression or disease progression. Patients then receive cyclophosphamide on days -3 and -2 and undergo HSCT on day 0 in the absence of disease progression or unacceptable toxicity.",
+              "interventionNames": [
+                "Procedure: Allogeneic Hematopoietic Stem Cell Transplantation",
+                "Drug: Cyclophosphamide",
+                "Radiation: Intensity-Modulated Radiation Therapy",
+                "Procedure: Total-Body Irradiation"
+              ]
+            }
+          ],
+          "interventions": [
+            {
+              "type": "PROCEDURE",
+              "name": "Allogeneic Hematopoietic Stem Cell Transplantation",
+              "description": "Undergo HSCT",
+              "armGroupLabels": ["Treatment (TBI using IMRT, cyclophosphamide, HSCT)"],
+              "otherNames": [
+                "Allogeneic Hematopoietic Cell Transplantation",
+                "allogeneic stem cell transplantation",
+                "HSC",
+                "HSCT",
+                "Stem Cell Transplantation, Allogeneic"
+              ]
+            },
+            {
+              "type": "DRUG",
+              "name": "Cyclophosphamide",
+              "description": "Undergo HSCT",
+              "armGroupLabels": ["Treatment (TBI using IMRT, cyclophosphamide, HSCT)"],
+              "otherNames": [
+                "(-)-Cyclophosphamide",
+                "2H-1,3,2-Oxazaphosphorine, 2-[bis(2-chloroethyl)amino]tetrahydro-, 2-oxide, monohydrate",
+                "Carloxan",
+                "Ciclofosfamida",
+                "Ciclofosfamide",
+                "Cicloxal",
+                "Clafen",
+                "Claphene",
+                "CP monohydrate",
+                "CTX",
+                "CYCLO-cell",
+                "Cycloblastin",
+                "Cycloblastine",
+                "Cyclophospham",
+                "Cyclophosphamid monohydrate",
+                "Cyclophosphamide Monohydrate",
+                "Cyclophosphamidum",
+                "Cyclophosphan",
+                "Cyclophosphane",
+                "Cyclophosphanum",
+                "Cyclostin",
+                "Cyclostine",
+                "Cytophosphan",
+                "Cytophosphane",
+                "Cytoxan",
+                "Fosfaseron",
+                "Genoxal",
+                "Genuxal",
+                "Ledoxina",
+                "Mitoxan",
+                "Neosar",
+                "Revimmune",
+                "Syklofosfamid",
+                "WR- 138719"
+              ]
+            },
+            {
+              "type": "RADIATION",
+              "name": "Intensity-Modulated Radiation Therapy",
+              "description": "Undergo TBI using IMRT",
+              "armGroupLabels": ["Treatment (TBI using IMRT, cyclophosphamide, HSCT)"],
+              "otherNames": [
+                "IMRT",
+                "Intensity Modulated RT",
+                "Intensity-Modulated Radiotherapy",
+                "Radiation, Intensity-Modulated Radiotherapy"
+              ]
+            },
+            {
+              "type": "PROCEDURE",
+              "name": "Total-Body Irradiation",
+              "description": "Undergo TBI using IMRT",
+              "armGroupLabels": ["Treatment (TBI using IMRT, cyclophosphamide, HSCT)"],
+              "otherNames": [
+                "TBI",
+                "Total Body Irradiation",
+                "Whole Body Irradiation",
+                "Whole-Body Irradiation"
+              ]
+            }
+          ]
+        },
+        "outcomesModule": {
+          "primaryOutcomes": [
+            {
+              "measure": "Mean lung dose",
+              "description": "The study will be deemed feasible if \\>= 80% of patients complete the intensity modulation radiation therapy (IMRT) to the total dose of 800 cGy, mean lung and kidney doses are limited to 200 cGy or less.",
+              "timeFrame": "Up to day 100"
+            },
+            {
+              "measure": "Mean kidney dose",
+              "description": "The study will be deemed feasible if \\>= 80% of patients complete the IMRT to the total dose of 800 cGy, mean lung and kidney doses are limited to 200 cGy or less.",
+              "timeFrame": "Up to day 100"
+            }
+          ],
+          "secondaryOutcomes": [
+            {
+              "measure": "Dose homogeneity for lungs, kidneys, and total body",
+              "description": "\"Dose homogeneity for lung, kidney and total body will use the DVH (dose volume histograms) generated by the treatment plan for each of these regions. The goal is to keep the lung and kidney dose homogeneity to with +/- 15% of the mean dose to that organ. The goal is to keep total body dose homogeneity to within +/- 15% of the prescribed total body dose of 8 Gy.\"",
+              "timeFrame": "Up to day 100"
+            },
+            {
+              "measure": "Transplant-related mortality",
+              "description": "Measured by comparing the transplant-related mortality rates on day 30 compared to day 100.",
+              "timeFrame": "Day 30 and day 100"
+            }
+          ]
+        },
+        "eligibilityModule": {
+          "eligibilityCriteria": "Inclusion Criteria:\n\n* Karnofsky performance status (KPS) \\>= 70\n* Systemic sclerosis patients evaluated within 30 days of start of conditioning regimen who would be candidates for TBI-cyclophosphamide (Cy) per City of Hope (COH) guidelines and standard operating procedures (SOP) for autologous hematopoietic cell transplant\n* Patients must be suitable for TBI conditioning regimens as part of transplant per radiation the referring hematologist\n* Patients must have adequate organ function for HCT as determined by the hematologist\n* Women of child-bearing potential and men must agree to use adequate contraception (hormonal or barrier method of birth control or abstinence) prior to study entry and for six months following duration of study participation\n* All subjects must have the ability to understand the treatment and the willingness to sign a written informed consent\n\nExclusion Criteria:\n\n* Patients should not have any uncontrolled illness including ongoing or active infection\n* Prior history of radiation therapy must be presented to study principal investigator (PI) for eligibility determination\n* Pregnant women are excluded from this study because total body irradiation is an agent with the potential for teratogenic or abortifacient effects\n* Subjects, who in the opinion of the investigator, may not be able to comply with the safety monitoring requirements of the study",
+          "healthyVolunteers": false,
+          "sex": "ALL",
+          "minimumAge": "18 Years",
+          "maximumAge": "65 Years",
+          "stdAges": ["ADULT", "OLDER_ADULT"]
+        },
+        "contactsLocationsModule": {
+          "overallOfficials": [
+            {
+              "name": "Jeffrey Y Wong",
+              "affiliation": "City of Hope Medical Center",
+              "role": "PRINCIPAL_INVESTIGATOR"
+            }
+          ],
+          "locations": [
+            {
+              "facility": "City of Hope Medical Center",
+              "status": "RECRUITING",
+              "city": "Duarte",
+              "state": "California",
+              "zip": "91010",
+              "country": "United States",
+              "contacts": [
+                {
+                  "name": "Jeffrey Y. Wong",
+                  "role": "CONTACT",
+                  "phone": "626-218-2247",
+                  "email": "jwong@coh.org"
+                },
+                {
+                  "name": "Jeffrey Y. Wong",
+                  "role": "PRINCIPAL_INVESTIGATOR"
+                }
+              ],
+              "geoPoint": {
+                "lat": 34.13945,
+                "lon": -117.97729
+              }
+            }
+          ]
+        }
+      },
+      "derivedSection": {
+        "miscInfoModule": {
+          "versionHolder": "2025-11-21"
+        },
+        "conditionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D012595",
+              "term": "Scleroderma, Systemic"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D003240",
+              "term": "Connective Tissue Diseases"
+            },
+            {
+              "id": "D017437",
+              "term": "Skin and Connective Tissue Diseases"
+            },
+            {
+              "id": "D012871",
+              "term": "Skin Diseases"
+            }
+          ]
+        },
+        "interventionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D033581",
+              "term": "Stem Cell Transplantation"
+            },
+            {
+              "id": "D003520",
+              "term": "Cyclophosphamide"
+            },
+            {
+              "id": "D050397",
+              "term": "Radiotherapy, Intensity-Modulated"
+            },
+            {
+              "id": "D014916",
+              "term": "Whole-Body Irradiation"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D017690",
+              "term": "Cell Transplantation"
+            },
+            {
+              "id": "D064987",
+              "term": "Cell- and Tissue-Based Therapy"
+            },
+            {
+              "id": "D001691",
+              "term": "Biological Therapy"
+            },
+            {
+              "id": "D013812",
+              "term": "Therapeutics"
+            },
+            {
+              "id": "D014180",
+              "term": "Transplantation"
+            },
+            {
+              "id": "D013514",
+              "term": "Surgical Procedures, Operative"
+            },
+            {
+              "id": "D010752",
+              "term": "Phosphoramide Mustards"
+            },
+            {
+              "id": "D009588",
+              "term": "Nitrogen Mustard Compounds"
+            },
+            {
+              "id": "D009150",
+              "term": "Mustard Compounds"
+            },
+            {
+              "id": "D006846",
+              "term": "Hydrocarbons, Halogenated"
+            },
+            {
+              "id": "D006838",
+              "term": "Hydrocarbons"
+            },
+            {
+              "id": "D009930",
+              "term": "Organic Chemicals"
+            },
+            {
+              "id": "D063088",
+              "term": "Phosphoramides"
+            },
+            {
+              "id": "D009943",
+              "term": "Organophosphorus Compounds"
+            },
+            {
+              "id": "D020266",
+              "term": "Radiotherapy, Conformal"
+            },
+            {
+              "id": "D011881",
+              "term": "Radiotherapy, Computer-Assisted"
+            },
+            {
+              "id": "D011878",
+              "term": "Radiotherapy"
+            },
+            {
+              "id": "D008919",
+              "term": "Investigative Techniques"
+            }
+          ]
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT06053567",
+          "orgStudyIdInfo": {
+            "id": "2016120049"
+          },
+          "secondaryIdInfos": [
+            {
+              "id": "R01CA273221",
+              "type": "NIH",
+              "link": "https://reporter.nih.gov/quickSearch/R01CA273221"
+            }
+          ],
+          "organization": {
+            "fullName": "University of Texas at Austin",
+            "class": "OTHER"
+          },
+          "briefTitle": "Community-based Smoking Cessation Treatment for Adults With High Stress Sensitivity.",
+          "officialTitle": "Efficacy and Implementation of Exercise-based Smoking Cessation Treatment for Adults With High Anxiety Sensitivity.",
+          "acronym": "STEP3"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2025-04",
+          "overallStatus": "RECRUITING",
+          "expandedAccessInfo": {
+            "hasExpandedAccess": false
+          },
+          "startDateStruct": {
+            "date": "2023-12-27",
+            "type": "ACTUAL"
+          },
+          "primaryCompletionDateStruct": {
+            "date": "2027-06-30",
+            "type": "ESTIMATED"
+          },
+          "completionDateStruct": {
+            "date": "2028-06-30",
+            "type": "ESTIMATED"
+          },
+          "studyFirstSubmitDate": "2023-09-07",
+          "studyFirstSubmitQcDate": "2023-09-13",
+          "studyFirstPostDateStruct": {
+            "date": "2023-09-25",
+            "type": "ACTUAL"
+          },
+          "lastUpdateSubmitDate": "2025-04-23",
+          "lastUpdatePostDateStruct": {
+            "date": "2025-04-27",
+            "type": "ACTUAL"
+          }
+        },
+        "sponsorCollaboratorsModule": {
+          "responsibleParty": {
+            "type": "SPONSOR_INVESTIGATOR",
+            "investigatorFullName": "Jasper A. Smits",
+            "investigatorTitle": "Principal Investigator",
+            "investigatorAffiliation": "University of Texas at Austin"
+          },
+          "leadSponsor": {
+            "name": "Jasper A. Smits",
+            "class": "OTHER"
+          },
+          "collaborators": [
+            {
+              "name": "University of Houston",
+              "class": "OTHER"
+            },
+            {
+              "name": "University of Oklahoma",
+              "class": "OTHER"
+            },
+            {
+              "name": "National Cancer Institute (NCI)",
+              "class": "NIH"
+            },
+            {
+              "name": "YMCA",
+              "class": "OTHER"
+            }
+          ]
+        },
+        "oversightModule": {
+          "oversightHasDmc": true,
+          "isFdaRegulatedDrug": true,
+          "isFdaRegulatedDevice": false,
+          "isUsExport": false
+        },
+        "descriptionModule": {
+          "briefSummary": "Anxiety sensitivity, reflecting the fear of bodily sensations, is a risk factor for the maintenance and relapse of smoking. This study is designed to address the question - is a smoking cessation intervention personalized to high anxiety sensitive smokers and adapted for implementation by the YMCA effective among racially/ethnically diverse samples?",
+          "detailedDescription": "This protocol provides the recommended treatment to achieve smoking cessation (i.e., counseling and nicotine replacement therapy) and randomly assigns individuals to a high-intensity exercise or low-intensity exercise intervention as a strategy to engage the mechanisms relevant to high anxiety sensitive smokers to improve smoking cessation outcomes."
+        },
+        "conditionsModule": {
+          "conditions": ["Nicotine Dependence"]
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE3"],
+          "designInfo": {
+            "allocation": "RANDOMIZED",
+            "interventionModel": "PARALLEL",
+            "primaryPurpose": "TREATMENT",
+            "maskingInfo": {
+              "masking": "NONE"
+            }
+          },
+          "enrollmentInfo": {
+            "count": 360,
+            "type": "ESTIMATED"
+          }
+        },
+        "armsInterventionsModule": {
+          "armGroups": [
+            {
+              "label": "High-Intensity Aerobic Exercise",
+              "type": "EXPERIMENTAL",
+              "description": "Participants assigned to this arm will be instructed to complete 75 minutes per week of aerobic training at 60-85% of the their heart rate reserve.",
+              "interventionNames": [
+                "Behavioral: Aerobic Exercise",
+                "Behavioral: Counseling",
+                "Drug: Nicotine patch"
+              ]
+            },
+            {
+              "label": "Low-Intensity Aerobic Exercise",
+              "type": "ACTIVE_COMPARATOR",
+              "description": "Participants assigned to this arm will be instructed to complete 75 minutes per week of aerobic training at 20-40% of the their heart rate reserve.",
+              "interventionNames": [
+                "Behavioral: Aerobic Exercise",
+                "Behavioral: Counseling",
+                "Drug: Nicotine patch"
+              ]
+            }
+          ],
+          "interventions": [
+            {
+              "type": "BEHAVIORAL",
+              "name": "Aerobic Exercise",
+              "description": "Participants will select a YMCA branch and will be assigned a personal fitness instructor who will oversee a 15-week exercise intervention. The weekly exercise prescription is 75 minutes of aerobic training.",
+              "armGroupLabels": [
+                "High-Intensity Aerobic Exercise",
+                "Low-Intensity Aerobic Exercise"
+              ]
+            },
+            {
+              "type": "BEHAVIORAL",
+              "name": "Counseling",
+              "description": "Participants will receive the standard tobacco cessation package of up to 5 proactive interactions from the Texas Tobacco Quitline (TTQ). Interactions are typically phone calls, but can be chat or live text if the participant prefers. Interaction 1 is for assessment and quit date planning, Interaction 2 occurs prior to the quit date and can be a group session, Interaction 3 occurs shortly following the quit date, and Interactions 4 and 5 are for relapse prevention if the smoker has quit or problem solving if they have not quit. TTQ also offers a tobacco cessation text messaging program and access to a web portal with a variety of cessation resources.",
+              "armGroupLabels": [
+                "High-Intensity Aerobic Exercise",
+                "Low-Intensity Aerobic Exercise"
+              ]
+            },
+            {
+              "type": "DRUG",
+              "name": "Nicotine patch",
+              "description": "On the target quit day (week 6), participants will be provided 8 weeks of nicotine replacement therapy (24-hour transdermal nicotine patches \\[TNP\\]).",
+              "armGroupLabels": [
+                "High-Intensity Aerobic Exercise",
+                "Low-Intensity Aerobic Exercise"
+              ]
+            }
+          ]
+        },
+        "outcomesModule": {
+          "primaryOutcomes": [
+            {
+              "measure": "7-day point prevalence abstinence (PPA) at 6-month follow-up",
+              "description": "Self-report of no smoking (not even a puff) during the previous 7 days, verified by expired carbon monoxide (CO; ≤5ppm), saliva cotinine (\\<30 ng/mL), or significant other, and not invalidated by any of these verification measures. Failure to provide any of these 3 verification measures will result in PPA being considered missing.",
+              "timeFrame": "Protocol week 30, which is 24 weeks (6 months) after the quit attempt (set at week 6)"
+            }
+          ],
+          "secondaryOutcomes": [
+            {
+              "measure": "7-day point prevalence abstinence (PPA) at 12-month follow-up",
+              "description": "Self-report of no smoking (not even a puff) during the previous 7 days, verified by expired carbon monoxide (CO; ≤5ppm), saliva cotinine (\\<30 ng/mL), or significant other, and not invalidated by any of these verification measures. Failure to provide any of these 3 verification measures will result in PPA being considered missing.",
+              "timeFrame": "Protocol week 54, which is 48 weeks (12 months) after the quit attempt (set at week 6)"
+            },
+            {
+              "measure": "7-day point prevalence abstinence (PPA) at 9-month follow-up",
+              "description": "Self-report of no smoking (not even a puff) during the previous 7 days, verified by expired carbon monoxide (CO; ≤5ppm), saliva cotinine (\\<30 ng/mL), or significant other, and not invalidated by any of these verification measures. Failure to provide any of these 3 verification measures will result in PPA being considered missing.",
+              "timeFrame": "Protocol week 42, which is 36 weeks (9 months) after the quit attempt (set at week 6)"
+            }
+          ]
+        },
+        "eligibilityModule": {
+          "eligibilityCriteria": "Inclusion Criteria:\n\n* Adult (age ≥ 18);\n* High Anxiety Sensitivity (≥5 on the Short Scale Anxiety Sensitivity Index \\[SSASI\\]);\n* Daily smoker, ≥5 cigarettes (including e-cigarettes, little cigars/cigarillos) for ≥1 year;\n* Motivated to quit smoking as evidenced by a score of ≥5 on a 0-10 Likert scale;\n* Body mass index \\&lt;40;\n* Medical clearance to participate.\n* Located near a participating YMCA site (within 50 miles)\n\nExclusion Criteria:\n\n* Regular exercise defined as engaging in vigorous-intensity exercise for at least 75 minutes per week for the last 3 months\n* Receiving current intervention for smoking cessation.\n* Outstanding debt to the YMCA\n* Listed as a sex offender on the National Sex Offender Registry",
+          "healthyVolunteers": true,
+          "sex": "ALL",
+          "minimumAge": "18 Years",
+          "stdAges": ["ADULT", "OLDER_ADULT"]
+        },
+        "contactsLocationsModule": {
+          "centralContacts": [
+            {
+              "name": "Marla I Sarmiento, BS",
+              "role": "CONTACT",
+              "phone": "915-502-9979",
+              "email": "sarmimar@utexas.edu"
+            },
+            {
+              "name": "Sydney Thureen, BS",
+              "role": "CONTACT",
+              "phone": "610-719-7952",
+              "email": "sthureen@utexas.edu"
+            }
+          ],
+          "overallOfficials": [
+            {
+              "name": "Jasper Smits, PhD",
+              "affiliation": "University of Texas at Austin",
+              "role": "PRINCIPAL_INVESTIGATOR"
+            }
+          ],
+          "locations": [
+            {
+              "facility": "University of Texas at Austin",
+              "status": "RECRUITING",
+              "city": "Austin",
+              "state": "Texas",
+              "zip": "78712",
+              "country": "United States",
+              "geoPoint": {
+                "lat": 30.26715,
+                "lon": -97.74306
+              }
+            }
+          ]
+        },
+        "ipdSharingStatementModule": {
+          "ipdSharing": "YES",
+          "description": "Within one year of completion (publication) of the primary aims for this project, we will provide de-identified data from this project to interested researchers. The data are to be provided in a SPSS file or Excel, with separate documentation of labels/characteristics for each column of data. Data will be released directly by Dr. Smits's team at UT to investigators providing evidence of their institution's IRB approval for planned analyses of the data.",
+          "infoTypes": ["STUDY_PROTOCOL", "SAP", "ICF"],
+          "timeFrame": "Within one year of completion (publication) of the primary aims. No end date.",
+          "accessCriteria": "Data will be released directly by Dr. Smits's team at UT to investigators providing evidence of their institution's IRB approval for planned analyses of the data."
+        }
+      },
+      "derivedSection": {
+        "miscInfoModule": {
+          "versionHolder": "2025-11-21"
+        },
+        "conditionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D014029",
+              "term": "Tobacco Use Disorder"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D019966",
+              "term": "Substance-Related Disorders"
+            },
+            {
+              "id": "D064419",
+              "term": "Chemically-Induced Disorders"
+            },
+            {
+              "id": "D001523",
+              "term": "Mental Disorders"
+            }
+          ]
+        },
+        "interventionBrowseModule": {
+          "meshes": [
+            {
+              "id": "D015444",
+              "term": "Exercise"
+            },
+            {
+              "id": "D003376",
+              "term": "Counseling"
+            },
+            {
+              "id": "D061485",
+              "term": "Tobacco Use Cessation Devices"
+            }
+          ],
+          "ancestors": [
+            {
+              "id": "D009043",
+              "term": "Motor Activity"
+            },
+            {
+              "id": "D009068",
+              "term": "Movement"
+            },
+            {
+              "id": "D009142",
+              "term": "Musculoskeletal Physiological Phenomena"
+            },
+            {
+              "id": "D055687",
+              "term": "Musculoskeletal and Neural Physiological Phenomena"
+            },
+            {
+              "id": "D008605",
+              "term": "Mental Health Services"
+            },
+            {
+              "id": "D004191",
+              "term": "Behavioral Disciplines and Activities"
+            },
+            {
+              "id": "D003153",
+              "term": "Community Health Services"
+            },
+            {
+              "id": "D006296",
+              "term": "Health Services"
+            },
+            {
+              "id": "D005159",
+              "term": "Health Care Facilities Workforce and Services"
+            },
+            {
+              "id": "D013812",
+              "term": "Therapeutics"
+            }
+          ]
+        }
+      },
+      "hasResults": false
+    }
+  ],
+  "apiVersion": "2.0.0",
+  "queryCount": 5
+}

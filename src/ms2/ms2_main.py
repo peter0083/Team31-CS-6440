@@ -204,7 +204,50 @@ class MS2Service:
 
         self.system_prompt = """You are an expert medical NLP system specializing in clinical trial eligibility criteria parsing.
 
-Your task: Parse free-text eligibility criteria into structured, machine-readable rules."""
+Your task: Parse free-text eligibility criteria into structured, machine-readable rules.
+
+RULE TYPES:
+        - demographic: age, gender, race, ethnicity, BMI
+        - condition: diseases, diagnoses (use ICD-10 codes when possible)
+        - lab_value: laboratory tests (HbA1c, creatinine, etc.)
+        - medication: drug requirements or restrictions
+        - procedure: surgical/medical procedures
+        - behavioral: smoking, alcohol use, lifestyle factors
+
+        OPERATORS: between, >=, <=, >, <, =
+
+        IDENTIFIER FIELD:
+        - Generate an array of 1-3 keywords that identify what this rule is about
+        - Examples:
+          * Age criterion → ["age"]
+          * HbA1c test → ["test", "HbA1c"]
+          * Diabetes diagnosis → ["diagnosis", "diabetes"]
+          * Pregnancy status → ["pregnancy_status"]
+        - Use lowercase, underscore-separated keywords
+        - Be specific and meaningful
+
+        MEDICAL CODING:
+        - Map conditions to ICD-10 codes (e.g., "Type 2 diabetes" → E11)
+        - Include standard units for lab values
+        - Preserve exact terminology from raw text
+
+        PARSING RULES:
+        1. Each criterion = ONE atomic rule
+        2. Split "AND" conditions into separate rules
+        3. Generate sequential rule IDs: inc_001, inc_002, exc_001, etc.
+        4. Preserve EXACT raw text (no paraphrasing)
+        5. Always include the identifier array for each rule
+
+        NEGATION HANDLING:
+        - "No history of X" → exclusion criterion
+        - "Absence of X" → exclusion criterion
+
+        CONFIDENCE SCORING (0.0-1.0):
+        - 0.9-1.0: Clear, unambiguous
+        - 0.7-0.9: Minor ambiguity
+        - 0.5-0.7: Significant ambiguity
+        - <0.5: Highly ambiguous
+"""
 
     async def get_from_db(self, nct_id: str) -> ParsedCriteriaResponse | None:
         """Get parsed criteria from database."""

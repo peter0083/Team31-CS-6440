@@ -68,6 +68,22 @@ def get_db_connection() -> psycopg2.extensions.connection:
     )
 
 
+def clean_uuid(raw_id: Optional[str]) -> Optional[str]:
+    if not raw_id:
+        return None
+
+    # Remove 'urn:uuid:' prefix if present
+    if raw_id.startswith('urn:uuid:'):
+        return raw_id.replace('urn:uuid:', '', 1)
+
+    # Remove resource type prefix (e.g., 'Patient/', 'Condition/')
+    if '/' in raw_id:
+        return raw_id.split('/')[-1]
+
+    # Return as-is if already clean
+    return raw_id
+
+
 def calculate_age(birth_date_str: Optional[str]) -> Optional[int]:
     try:
         if not birth_date_str:
@@ -192,7 +208,7 @@ def _process_bundle(cursor: psycopg2.extensions.cursor, bundle: Dict[str, Any]) 
 
 def _insert_patient(cursor: psycopg2.extensions.cursor, resource: Dict[str, Any]) -> None:
     try:
-        patient_id: Optional[str] = resource.get("id")
+        patient_id: Optional[str] = clean_uuid(resource.get("id")) # add cleaning logic to UUID
         if not patient_id:
             return
         
@@ -250,7 +266,7 @@ def _insert_condition(cursor: psycopg2.extensions.cursor, resource: Dict[str, An
         if not condition_id:
             return
         
-        subject_id: str = resource.get("subject", {}).get("reference", "").split("/")[-1]
+        subject_id: Optional[str] = clean_uuid(resource.get("subject", {}).get("reference", "").split("/")[-1])
         if not subject_id:
             return
         
@@ -290,7 +306,7 @@ def _insert_observation(cursor: psycopg2.extensions.cursor, resource: Dict[str, 
         if not obs_id:
             return
         
-        subject_id: str = resource.get("subject", {}).get("reference", "").split("/")[-1]
+        subject_id: Optional[str] = clean_uuid(resource.get("subject", {}).get("reference", "").split("/")[-1])
         if not subject_id:
             return
         
@@ -339,7 +355,7 @@ def _insert_medication(cursor: psycopg2.extensions.cursor, resource: Dict[str, A
         if not med_id:
             return
         
-        subject_id: str = resource.get("subject", {}).get("reference", "").split("/")[-1]
+        subject_id: Optional[str] = clean_uuid(resource.get("subject", {}).get("reference", "").split("/")[-1])
         if not subject_id:
             return
         
