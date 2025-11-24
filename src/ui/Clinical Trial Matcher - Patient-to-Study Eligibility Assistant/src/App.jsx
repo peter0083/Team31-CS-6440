@@ -143,7 +143,7 @@ function App() {
 
       {/* Health Status Dashboard */}
       <section className="health-status-section">
-        <h2>System Health Status</h2>
+        { /* <h2>System Health Status</h2> */}
         <div className="health-status-grid">
             { /* <MS2HealthStatus /> */}
             { /* <MS3HealthStatus /> */}
